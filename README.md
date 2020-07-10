@@ -1,8 +1,6 @@
 ### Hi there 👋 VVR here from TeamWolf / WOLFOSP
 
 
-Here are some ideas to get you started:
-
 - 🔭 I’m currently working on ALS kernel for X00T, NewsBot using News API
 - 🌱 I’m currently learning Java, Python and Kotlin
 - 👯 I’m looking to collaborate on Linux Mainline kernel for android, 
