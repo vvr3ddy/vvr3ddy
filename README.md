@@ -10,4 +10,4 @@
 - 😄 Pronouns: vvr
 - ⚡ Fun fact: I prefer working alone
 
-[![VVRs's github stats](https://github-readme-stats.vercel.app/api?username=vvr3ddy&show_icons=true&theme=dark)](https://github.com/anuraghazra/github-readme-stats) [![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=vvr3ddy)](https://github.com/anuraghazra/github-readme-stats)
+[![VVRs's github stats](https://github-readme-stats.vercel.app/api?username=vvr3ddy&show_icons=true&theme=dark)](https://github.com/anuraghazra/github-readme-stats) [![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=vvr3ddy&hide=c,cobol,c++,bash)](https://github.com/anuraghazra/github-readme-stats)
