@@ -2,10 +2,10 @@
 
 
 - 🔭 I’m currently working on ALS kernel for X00T, NewsBot using News API
-- 🌱 I’m currently learning Java, Python and Kotlin
-- 👯 I’m looking to collaborate on Kotlin for Web Development 
-- 🤔 I’m looking for help with Kotlin and Advanced Java
-- 💬 Ask me about Java 
+- 🌱 I’m currently learning PL SQL
+- 👯 I’m looking to collaborate on JS for web development 
+- 🤔 I’m looking for help with MERN and MEVN Stack
+- 💬 Ask me about Java, SQL 
 - 📫 How to reach me: vvr3ddy at telegram
 - 😄 Pronouns: vvr
 - ⚡ Fun fact: I prefer working alone
