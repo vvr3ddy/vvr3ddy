@@ -1,11 +1,11 @@
 ### Hi there 👋 VVR here from TeamWolf / WOLF OSP
 
 
-- 🔭 I’m currently working on ALS kernel for X00T, NewsBot using News API
-- 🌱 I’m currently learning PL SQL
-- 👯 I’m looking to collaborate on JS for web development 
-- 🤔 I’m looking for help with MERN and MEVN Stack
-- 💬 Ask me about Java, SQL 
+- 🔭 I’m currently working on Java and Angular Full Stack
+- 🌱 I’m currently learning Core Java
+- 👯 I’m looking to collaborate on Spring Framework for Backend REST API development 
+- 🤔 I’m looking for help with Angular and Spring Stack
+- 💬 Ask me about Core Java, Oracle SQL 
 - 📫 How to reach me: vvr3ddy at telegram
 - 😄 Pronouns: vvr
 - ⚡ Fun fact: I prefer working alone
