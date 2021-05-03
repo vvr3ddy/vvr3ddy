@@ -1,6 +1,6 @@
 ### Hi there 👋 VVR here from TeamWolf / WOLF OSP
 
-
+- Spies : ![](https://komarev.com/ghpvc/?username=vvr3ddy&color=blue)
 - 🔭 I’m currently working on Java and Angular Full Stack
 - 🌱 I’m currently learning Spring Boot
 - 👯 I’m looking to collaborate on Kotlin with Spring 
