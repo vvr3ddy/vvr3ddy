@@ -2,10 +2,10 @@
 
 - Spies : ![](https://komarev.com/ghpvc/?username=vvr3ddy&color=blue)
 - 🔭 I’m currently working on Java and Angular Full Stack
-- 🌱 I’m currently learning Spring Boot
+- 🌱 I’m currently learning React JS
 - 👯 I’m looking to collaborate on Kotlin with Spring 
-- 🤔 I’m looking for help with Angular 2
-- 💬 Ask me about Java, Oracle SQL, Spring Framework, ORM, JPA with Hibernate 
+- 🤔 I’m looking for help with React JS
+- 💬 Ask me about Java, Oracle SQL, Spring Framework, ORM, JPA with Hibernate, Angular 
 - 📫 How to reach me: That's a mystery I'll leave you to solve.
 - 😄 Pronouns: VVR V2R
 - ⚡ Fun fact: I don't give a second chance
