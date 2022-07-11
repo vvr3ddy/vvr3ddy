@@ -1,10 +1,10 @@
 ### Hi there 👋 VVR here from TeamWolf / WOLF OSP
 
 - Spies : ![](https://komarev.com/ghpvc/?username=vvr3ddy&color=blue)
-- 🔭 I’m currently working on Java and Angular Full Stack
-- 🌱 I’m currently learning React JS
+- 🔭 I’m currently working on PL/SQL, Amdocs Cramer
+- 🌱 I’m currently learning Kotlin for Android
 - 👯 I’m looking to collaborate on Kotlin with Spring 
-- 🤔 I’m looking for help with React JS
+- 🤔 I’m looking for help with Kotlin
 - 💬 Ask me about Java, Oracle SQL, Spring Framework, ORM, JPA with Hibernate, Angular 
 - 📫 How to reach me: That's a mystery I'll leave you to solve.
 - 😄 Pronouns: VVR V2R
