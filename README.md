@@ -26,3 +26,6 @@ For those who love a good mystery, figuring out how to reach me is part of the a
 ### 🧩 My Philosophy
 
 "I believe in the power of open source to bring people together and drive innovation. Let's build something amazing, one commit at a time."
+
+### Badges
+[![IBM Introduction to Mobile Applications](https://images.credly.com/size/340x340/images/dc4d546e-e28c-4d6d-9e47-0445d2da073c/Coursera_20Intro_20to_20Mobile_20App_20Development.png)](https://www.credly.com/go/XrtmbQzb)
