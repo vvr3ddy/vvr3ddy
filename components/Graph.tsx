@@ -88,13 +88,13 @@ export default function Graph({ posts }: { posts: Post[] }) {
     let width = window.innerWidth;
     let height = window.innerHeight;
 
-    const friction = 0.90;
-    const repulsionStrength = 5000;
+    const friction = 0.80;
+    const repulsionStrength = 1000;
     const springLength = 150;
     const springStrength = 0.005;
     const centerStrength = 0.001;
     const mouseRepulsionRadius = 100;
-    const mouseRepulsionForce = 0.2;
+    const mouseRepulsionForce = 0;
 
     let mouseX = -1000;
     let mouseY = -1000;
