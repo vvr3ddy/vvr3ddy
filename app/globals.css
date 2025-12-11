@@ -26,87 +26,25 @@
   font-display: swap;
 }
 
-
-body {
-  /* Apply Computer Modern to the entire body */
-  font-family: 'CMU Serif', serif;
-  @apply bg-white text-black dark:bg-[#0a0a0a] dark:text-gray-100 transition-colors duration-300;
-}
-
-/* Also ensure article content uses it specifically, overriding any other defaults */
-.prose {
-  font-family: 'CMU Serif', serif;
-  @apply dark:prose-invert;
-}
-
-/* Override default font-sans if applied elsewhere for consistency */
-.font-sans {
-  font-family: 'CMU Serif', serif !important;
-}
-
-/* If there are specific elements meant to be sans-serif, they would need explicit overrides */
-/* For example, for headings if they are font-sans but user wants them to be Computer Modern Serif */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'CMU Serif', serif;
-}
-
-/* Ensure code blocks also look good */
-code {
-  font-family: 'CMU Typewriter Text', monospace;
-}
-
-/* Optionally, if a sans-serif version is desired for specific elements like UI/buttons */
-/* @font-face {
-  font-family: 'CMU Sans Serif';
-  src: url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/cmunss.woff') format('woff');
+@font-face {
+  font-family: 'CMU Typewriter Text';
+  src: url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/cmuntt.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-} */
-
-:root {
-  --background: #fdfbf7;
-  --foreground: #1c1c1c;
 }
 
 @theme {
-  --font-serif: var(--font-merriweather);
-  --font-sans: var(--font-inter);
-  
-  --color-paper: #fdfbf7;
-  --color-ink: #1c1c1c;
+  --font-sans: "CMU Serif", serif;
+  --font-serif: "CMU Serif", serif;
+  --font-mono: "CMU Typewriter Text", monospace;
 }
 
 body {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-serif);
-}
-
-/* Custom "Prose" overrides for the Paper feel */
-.prose {
-  max-width: 65ch; /* Optimal reading width */
-  font-size: 1.125rem;
-  line-height: 1.8;
-}
-
-.prose h1, .prose h2, .prose h3 {
   font-family: var(--font-sans);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  @apply bg-white text-black dark:bg-[#0a0a0a] dark:text-gray-100 transition-colors duration-300;
 }
 
-.prose a {
-  text-decoration: underline;
-  text-decoration-color: #a8a29e;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  color: inherit;
-  transition: all 0.2s;
-}
-
-.prose a:hover {
-  text-decoration-color: #1c1c1c;
-  text-decoration-thickness: 2px;
-  background-color: #f5f5f4;
+.prose {
+  @apply dark:prose-invert;
 }
