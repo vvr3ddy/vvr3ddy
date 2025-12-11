@@ -1,7 +1,11 @@
-// Placeholder for protected route
+'use client'; // Make this a Client Component
+
 import React from 'react';
+import { useAuthStatus } from '@/hooks/useAuthStatus'; // Import useAuthStatus
 
 const AdminDashboardPage = () => {
+  const { logout } = useAuthStatus(); // Use the logout function from the hook
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#fdfbf7] dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 transition-colors duration-500">
       <h1 className="font-sans text-3xl font-bold mb-4">Admin Dashboard</h1>
@@ -21,7 +25,7 @@ const AdminDashboardPage = () => {
         </p>
       </div>
 
-      <a href="/admin/logout" className="mt-8 text-blue-600 hover:underline dark:text-blue-400">Logout</a>
+      <button onClick={logout} className="mt-8 text-blue-600 hover:underline dark:text-blue-400">Logout</button>
     </div>
   );
 };
