@@ -26,8 +26,16 @@ export default function Graph({ posts }: { posts: Post[] }) {
   const requestRef = useRef<number>(0);
   const { theme, resolvedTheme } = useTheme();
   
-  // State for rendering (initial render only, subsequent updates are direct DOM manipulation)
+  // State for rendering
   const [mounted, setMounted] = useState(false);
+  // State for interaction
+  const [hoveredNode, setHoveredNode] = useState<number | null>(null);
+  const hoveredNodeRef = useRef<number | null>(null);
+
+  // Sync ref with state for use in animation loop without dependency
+  useEffect(() => {
+    hoveredNodeRef.current = hoveredNode;
+  }, [hoveredNode]);
 
   // Initialize simulation
   useEffect(() => {
@@ -71,13 +79,13 @@ export default function Graph({ posts }: { posts: Post[] }) {
     let height = window.innerHeight;
 
     // Simulation params
-    const friction = 0.94;
+    const friction = 0.90; // Higher friction for slower movement
     const repulsionStrength = 5000;
     const springLength = 150;
     const springStrength = 0.005;
     const centerStrength = 0.001;
-    const mouseRepulsionRadius = 300;
-    const mouseRepulsionForce = 2;
+    const mouseRepulsionRadius = 100; // Smaller interaction radius
+    const mouseRepulsionForce = 0.2; // Weaker force
 
     let mouseX = -1000;
     let mouseY = -1000;
@@ -98,10 +106,18 @@ export default function Graph({ posts }: { posts: Post[] }) {
     const animate = () => {
       const nodes = nodesRef.current;
       const links = linksRef.current;
+      const hoveredIdx = hoveredNodeRef.current;
 
       // 1. Forces
       for (let i = 0; i < nodes.length; i++) {
         const nodeA = nodes[i];
+
+        // If this node is hovered, stop it completely
+        if (i === hoveredIdx) {
+            nodeA.vx = 0;
+            nodeA.vy = 0;
+            continue;
+        }
 
         // Repulsion
         for (let j = 0; j < nodes.length; j++) {
@@ -112,13 +128,13 @@ export default function Graph({ posts }: { posts: Post[] }) {
           const distSq = dx * dx + dy * dy;
           if (distSq > 0 && distSq < 100000) {
             const dist = Math.sqrt(distSq);
-            const force = repulsionStrength / (distSq + 1); // +1 to avoid infinity
+            const force = repulsionStrength / (distSq + 1);
             nodeA.vx += (dx / dist) * force;
             nodeA.vy += (dy / dist) * force;
           }
         }
 
-        // Mouse Repulsion
+        // Mouse Repulsion (Only if not hovered)
         const dxM = nodeA.x - mouseX;
         const dyM = nodeA.y - mouseY;
         const distM = Math.sqrt(dxM * dxM + dyM * dyM);
@@ -137,6 +153,10 @@ export default function Graph({ posts }: { posts: Post[] }) {
       links.forEach(link => {
         const nodeA = nodes[link.source];
         const nodeB = nodes[link.target];
+        
+        // Skip spring forces on hovered node (let it stick)
+        if (link.source === hoveredIdx || link.target === hoveredIdx) return;
+
         const dx = nodeB.x - nodeA.x;
         const dy = nodeB.y - nodeA.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -155,16 +175,19 @@ export default function Graph({ posts }: { posts: Post[] }) {
 
       // 2. Update Positions & DOM
       nodes.forEach((node, i) => {
-        node.vx *= friction;
-        node.vy *= friction;
-        node.x += node.vx;
-        node.y += node.vy;
+        // If hovered, don't update physics position, just let it sit
+        if (i !== hoveredIdx) {
+            node.vx *= friction;
+            node.vy *= friction;
+            node.x += node.vx;
+            node.y += node.vy;
 
-        // Boundary Check (Soft bounce)
-        if (node.x < 0) node.vx += 1;
-        if (node.x > width) node.vx -= 1;
-        if (node.y < 0) node.vy += 1;
-        if (node.y > height) node.vy -= 1;
+            // Boundary Check (Soft bounce)
+            if (node.x < 0) node.vx += 1;
+            if (node.x > width) node.vx -= 1;
+            if (node.y < 0) node.vy += 1;
+            if (node.y > height) node.vy -= 1;
+        }
 
         // Direct DOM update for nodes
         const el = document.getElementById(`node-${i}`);
@@ -218,6 +241,8 @@ export default function Graph({ posts }: { posts: Post[] }) {
             key={node.slug} 
             href={`/posts/${node.slug}`}
             id={`node-${i}`}
+            onMouseEnter={() => setHoveredNode(i)}
+            onMouseLeave={() => setHoveredNode(null)}
             className="absolute flex items-center justify-center rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:scale-110 hover:border-black dark:hover:border-white hover:z-50 transition-all duration-300 cursor-pointer group"
             style={{ 
                 width: node.radius * 2, 
