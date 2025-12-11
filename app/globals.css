@@ -51,6 +51,7 @@ body {
 /* Apply transitions to html and body specifically for the main background */
 html, body {
   transition: background-color 0.5s ease, color 0.5s ease;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Global smooth transition for all elements */
@@ -83,4 +84,8 @@ body, div, a, p, h1, h2, h3, h4, h5, h6, span, button, svg, hr, input, textarea 
 
 .prose {
   @apply dark:prose-invert;
+  /* Ensure code blocks and tables can scroll horizontally internally */
+  pre, table {
+    overflow-x: auto;
+  }
 }
