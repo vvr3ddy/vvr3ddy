@@ -11,6 +11,7 @@
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",
     "@types/js-yaml": "^4.0.9",
+    "cookie": "^1.1.1",
     "date-fns": "^4.1.0",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.1",
