@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Graph from "@/components/Graph";
+import Footer from "@/components/Footer";
 import { getAllPosts } from "@/lib/mdx";
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({
           <Graph posts={posts} />
           <ThemeToggle />
           {children}
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
