@@ -34,7 +34,7 @@ function decrypt(text: string): string {
   return decrypted.toString();
 }
 
-function getLikesDB() {
+export function getLikesDB() {
   if (!fs.existsSync(DB_PATH)) {
     fs.writeFileSync(DB_PATH, encrypt('{}'), 'utf8'); // Encrypt empty object on first write
   }
@@ -49,7 +49,7 @@ function getLikesDB() {
   }
 }
 
-function saveLikesDB(data: Record<string, number>) {
+export function saveLikesDB(data: Record<string, number>) {
   const encryptedData = encrypt(JSON.stringify(data, null, 2));
   fs.writeFileSync(DB_PATH, encryptedData, 'utf8');
 }

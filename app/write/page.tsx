@@ -6,12 +6,13 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation'; // Added useRouter
 import { Lock } from 'lucide-react';
 
 function Editor() {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get('slug');
+  const router = useRouter(); // Initialize useRouter
 
   const [content, setContent] = useState('# Hello World\n\nStart writing...');
   const [title, setTitle] = useState('');
@@ -141,10 +142,61 @@ function Editor() {
       }
 
       const result = await response.json();
-      setMessage(result.message);
+      if (result.success) {
+        setMessage(result.message);
+        // Clear edit slug so it acts like a new post on next access
+        if (editSlug) {
+            router.replace(`/write?slug=${slug}`); // Update URL if slug changed
+        } else {
+            router.replace(`/write?slug=${slug}`); // Navigate to edit mode for the new post
+        }
+      } else {
+        setMessage(result.message || 'Failed to save post.');
+      }
     } catch (error) {
       console.error(error);
       setMessage('An error occurred while saving.');
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!editSlug) return; // Can only delete existing posts
+
+    if (!window.confirm(`Are you sure you want to delete the post "${title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsPending(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': password,
+        },
+        body: JSON.stringify({ slug: editSlug }),
+      });
+
+      if (response.status === 401) {
+        setMessage('Unauthorized: Session expired');
+        setIsAuthorized(false);
+        return;
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setMessage(result.message);
+        router.push('/'); // Redirect to home page
+      } else {
+        setMessage(result.message || 'Failed to delete post.');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage('An error occurred while deleting.');
     } finally {
       setIsPending(false);
     }
@@ -193,6 +245,15 @@ function Editor() {
         <header className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white/50 dark:bg-black/50 backdrop-blur transition-colors">
           <h1 className="font-sans font-bold text-sm text-gray-500 dark:text-gray-400 uppercase tracking-widest">Studio {editSlug ? '(Editing)' : ''}</h1>
           <div className="flex items-center gap-2">
+            {editSlug && (
+              <button
+                onClick={handleDelete}
+                disabled={isPending}
+                className="text-red-500 hover:text-red-700 text-xs font-sans font-medium px-3 py-2 transition-colors disabled:opacity-50"
+              >
+                Delete Post
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="text-gray-400 hover:text-red-600 text-xs font-sans font-medium px-3 py-2 transition-colors"
@@ -261,7 +322,7 @@ function Editor() {
         </div>
         
         {message && (
-          <div className={`p-2 text-center text-xs font-sans ${message.includes('Saved') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          <div className={`p-2 text-center text-xs font-sans ${message.includes('Saved') || message.includes('deleted') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
             {message}
           </div>
         )}
