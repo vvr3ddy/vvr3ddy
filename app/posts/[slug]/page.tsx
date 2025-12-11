@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
+import remarkUnwrapImages from 'remark-unwrap-images';
 import CustomImage from '@/components/mdx/CustomImage';
 
 // Force static generation for GitHub Pages
@@ -22,7 +23,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 
   const options = {
     mdxOptions: {
-      remarkPlugins: [remarkMath, remarkGfm],
+      remarkPlugins: [remarkMath, remarkGfm, remarkUnwrapImages],
       rehypePlugins: [rehypeKatex],
     },
   };
