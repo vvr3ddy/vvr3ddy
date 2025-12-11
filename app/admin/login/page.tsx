@@ -3,22 +3,27 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, QrCode } from 'lucide-react';
+import { QrCode } from 'lucide-react'; // Lock icon removed, using input field's styling
 import Image from 'next/image';
+import OtpInput from '@/components/admin/OtpInput'; // Import OtpInput
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [message, setMessage] = useState('');
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
-  const [totpSecret, setTotpSecret] = useState('');
+  const [totpSecretDisplay, setTotpSecretDisplay] = useState(''); // Changed name to avoid conflict
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
+    setLoginError(false);
+    setLoginSuccess(false);
 
     try {
       const res = await fetch('/api/admin/login', {
@@ -29,12 +34,18 @@ export default function AdminLoginPage() {
 
       const data = await res.json();
       if (data.success) {
-        router.push('/admin/dashboard'); // Redirect to protected dashboard
+        setLoginSuccess(true);
+        setMessage('Login successful! Redirecting...');
+        setTimeout(() => {
+          router.push('/admin/dashboard'); // Redirect to protected dashboard
+        }, 800); // Short delay for animation
       } else {
-        setMessage(data.message || 'Login failed.');
+        setLoginError(true);
+        setMessage(data.message || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
       console.error('Login error:', error);
+      setLoginError(true);
       setMessage('An error occurred during login.');
     } finally {
       setLoading(false);
@@ -49,7 +60,7 @@ export default function AdminLoginPage() {
         const data = await res.json();
         if(data.success) {
             setQrCodeDataUrl(data.qrCodeDataUrl);
-            setTotpSecret(data.secret);
+            setTotpSecretDisplay(data.secret); // Use new state
             setMessage("Scan QR code and then add TOTP to your .env.local file. Remember to restart your server.");
         } else {
             setMessage(data.message || "Failed to generate TOTP secret.");
@@ -72,7 +83,8 @@ export default function AdminLoginPage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
             <input
               type="password"
-              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+              className={`mt-1 block w-full rounded-md border shadow-sm focus:outline-none focus:ring-2 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 
+                ${loginError ? 'border-red-500 ring-red-500 animate-wiggle' : 'border-gray-300 dark:border-gray-700 focus:border-indigo-500 focus:ring-indigo-500'}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -80,15 +92,13 @@ export default function AdminLoginPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">TOTP Code</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-              value={otpCode}
-              onChange={(e) => setOtpCode(e.target.value)}
-              required
+            <OtpInput 
+                length={6}
+                value={otpCode}
+                onChange={setOtpCode}
+                isError={loginError}
+                isSuccess={loginSuccess}
+                disabled={loading}
             />
           </div>
           <button
@@ -101,7 +111,7 @@ export default function AdminLoginPage() {
         </form>
         
         {message && (
-          <p className={`mt-4 text-sm text-center ${message.includes('success') ? 'text-green-600' : 'text-red-600'} dark:${message.includes('success') ? 'text-green-400' : 'text-red-400'}`}>
+          <p className={`mt-4 text-sm text-center ${loginSuccess ? 'text-green-600' : 'text-red-600'} dark:${loginSuccess ? 'text-green-400' : 'text-red-400'}`}>
             {message}
           </p>
         )}
@@ -126,7 +136,7 @@ export default function AdminLoginPage() {
                         <Image src={qrCodeDataUrl} alt="TOTP QR Code" width={150} height={150} />
                     </div>
                     <p className="text-sm font-mono text-gray-900 dark:text-gray-100 break-all">
-                        Secret: <strong>{totpSecret}</strong>
+                        Secret: <strong>{totpSecretDisplay}</strong>
                     </p>
                     <p className="text-xs text-red-500 dark:text-red-400 mt-2">
                         Add this secret to your .env.local as TOTP_SECRET and restart server.

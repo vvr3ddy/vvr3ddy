@@ -54,10 +54,31 @@ html, body {
 }
 
 /* Global smooth transition for all elements */
-* {
+body, div, a, p, h1, h2, h3, h4, h5, h6, span, button, svg, hr, input, textarea {
   transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 500ms;
+}
+
+/* Keyframe Animations for OTP Input */
+@keyframes wiggle {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(1); border-color: transparent; }
+  50% { transform: scale(1.05); border-color: #34D399; } /* Tailwind green-500 */
+  100% { transform: scale(1); border-color: transparent; }
+}
+
+.animate-wiggle {
+  animation: wiggle 0.3s ease-in-out;
+}
+
+.animate-pulse-green {
+  animation: pulse-green 0.6s ease-out;
 }
 
 .prose {
