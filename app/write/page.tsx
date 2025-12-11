@@ -155,23 +155,23 @@ function Editor() {
 
   if (!isAuthorized) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#fdfbf7]">
+      <div className="flex h-screen items-center justify-center bg-[#fdfbf7] dark:bg-[#0a0a0a] transition-colors duration-500">
         <form onSubmit={handleLogin} className="flex flex-col items-center gap-4 w-full max-w-xs px-6">
-          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-            <Lock className="w-4 h-4 text-gray-400" />
+          <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-2 transition-colors">
+            <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
           </div>
-          <h1 className="font-sans font-bold text-gray-900 mb-2">Restricted Access</h1>
+          <h1 className="font-sans font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">Restricted Access</h1>
           <input
             type="password"
             placeholder="Enter admin password"
-            className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-center font-sans text-sm outline-none focus:border-black transition-colors"
+            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded px-3 py-2 text-center font-sans text-sm outline-none focus:border-black dark:focus:border-white dark:text-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoFocus
           />
           <button
             type="submit"
-            className="w-full bg-black text-white rounded px-4 py-2 font-sans text-sm font-medium hover:bg-gray-800 transition-colors"
+            className="w-full bg-black dark:bg-white text-white dark:text-black rounded px-4 py-2 font-sans text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
           >
             Unlock Studio
           </button>
@@ -182,15 +182,15 @@ function Editor() {
   }
 
   if (isLoading) {
-    return <div className="flex h-screen items-center justify-center text-gray-500 font-sans">Loading post content...</div>;
+    return <div className="flex h-screen items-center justify-center text-gray-500 dark:text-gray-400 font-sans bg-[#fdfbf7] dark:bg-[#0a0a0a]">Loading post content...</div>;
   }
 
   return (
-    <div className="flex h-screen w-full bg-[#fdfbf7] overflow-hidden">
+    <div className="flex h-screen w-full bg-[#fdfbf7] dark:bg-[#0a0a0a] overflow-hidden transition-colors duration-500">
       {/* Editor Pane (Left) */}
-      <div className="w-1/2 flex flex-col border-r border-gray-200 h-full">
-        <header className="p-4 border-b border-gray-200 flex justify-between items-center bg-white/50 backdrop-blur">
-          <h1 className="font-sans font-bold text-sm text-gray-500 uppercase tracking-widest">Studio {editSlug ? '(Editing)' : ''}</h1>
+      <div className="w-1/2 flex flex-col border-r border-gray-200 dark:border-gray-800 h-full transition-colors">
+        <header className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white/50 dark:bg-black/50 backdrop-blur transition-colors">
+          <h1 className="font-sans font-bold text-sm text-gray-500 dark:text-gray-400 uppercase tracking-widest">Studio {editSlug ? '(Editing)' : ''}</h1>
           <div className="flex items-center gap-2">
             <button
               onClick={handleLogout}
@@ -201,7 +201,7 @@ function Editor() {
             <button
               onClick={handleSave}
               disabled={isPending}
-              className="bg-black text-white px-4 py-2 rounded text-sm font-sans font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded text-sm font-sans font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 transition-colors"
             >
               {isPending ? 'Saving...' : 'Save Post'}
             </button>
@@ -212,7 +212,7 @@ function Editor() {
           <input
             type="text"
             placeholder="Post Title"
-            className="w-full bg-transparent text-3xl font-bold font-sans outline-none placeholder:text-gray-300"
+            className="w-full bg-transparent text-3xl font-bold font-sans outline-none placeholder:text-gray-300 dark:placeholder:text-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
@@ -227,14 +227,14 @@ function Editor() {
             <input
               type="text"
               placeholder="slug-of-post"
-              className="w-full bg-gray-50 p-2 rounded text-sm font-mono outline-none border border-transparent focus:border-gray-200"
+              className="w-full bg-gray-50 dark:bg-gray-900 p-2 rounded text-sm font-mono outline-none border border-transparent focus:border-gray-200 dark:focus:border-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
             />
             <input
               type="text"
               placeholder="comma, separated, tags"
-              className="w-full bg-gray-50 p-2 rounded text-sm font-sans outline-none border border-transparent focus:border-gray-200"
+              className="w-full bg-gray-50 dark:bg-gray-900 p-2 rounded text-sm font-sans outline-none border border-transparent focus:border-gray-200 dark:focus:border-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
             />
@@ -242,18 +242,18 @@ function Editor() {
 
           <textarea
             placeholder="Short description..."
-            className="w-full bg-gray-50 p-2 rounded text-sm font-serif resize-none outline-none border border-transparent focus:border-gray-200"
+            className="w-full bg-gray-50 dark:bg-gray-900 p-2 rounded text-sm font-serif resize-none outline-none border border-transparent focus:border-gray-200 dark:focus:border-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
 
-          <div className="h-px bg-gray-100 my-4" />
+          <div className="h-px bg-gray-100 dark:bg-gray-800 my-4 transition-colors" />
 
           <TextareaAutosize
             minRows={10}
             placeholder="Write your thoughts here..."
-            className="w-full bg-transparent font-mono text-sm leading-relaxed outline-none resize-none text-gray-800"
+            className="w-full bg-transparent font-mono text-sm leading-relaxed outline-none resize-none text-gray-800 dark:text-gray-200 transition-colors"
             value={content}
             onChange={(e) => setContent(e.target.value)}
           />
@@ -267,8 +267,8 @@ function Editor() {
       </div>
 
       {/* Preview Pane (Right) */}
-      <div className="w-1/2 h-full overflow-y-auto bg-white p-12 md:p-20">
-        <article className="prose prose-lg prose-gray mx-auto">
+      <div className="w-1/2 h-full overflow-y-auto bg-white dark:bg-black p-12 md:p-20 transition-colors">
+        <article className="prose prose-lg prose-gray dark:prose-invert mx-auto transition-colors">
           <h1 className="font-sans mb-4">{title || 'Untitled'}</h1>
           <div className="text-sm text-gray-400 font-sans mb-8">
             {date ? new Date(date).toLocaleDateString() : new Date().toLocaleDateString()} · {tags || 'No tags'}
@@ -278,7 +278,7 @@ function Editor() {
             remarkPlugins={[remarkMath]} 
             rehypePlugins={[rehypeKatex]}
             components={{
-              p: ({children}) => <p className="font-serif text-gray-800 leading-relaxed mb-6">{children}</p>,
+              p: ({children}) => <p className="font-serif text-gray-800 dark:text-gray-200 leading-relaxed mb-6 transition-colors">{children}</p>,
             }}
           >
             {content}
