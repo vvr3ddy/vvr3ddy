@@ -1,26 +1,49 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fdfbf7;
+  --foreground: #1c1c1c;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --font-serif: var(--font-merriweather);
+  --font-sans: var(--font-inter);
+  
+  --color-paper: #fdfbf7;
+  --color-ink: #1c1c1c;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+}
+
+/* Custom "Prose" overrides for the Paper feel */
+.prose {
+  max-width: 65ch; /* Optimal reading width */
+  font-size: 1.125rem;
+  line-height: 1.8;
+}
+
+.prose h1, .prose h2, .prose h3 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.prose a {
+  text-decoration: underline;
+  text-decoration-color: #a8a29e;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  color: inherit;
+  transition: all 0.2s;
+}
+
+.prose a:hover {
+  text-decoration-color: #1c1c1c;
+  text-decoration-thickness: 2px;
+  background-color: #f5f5f4;
 }
