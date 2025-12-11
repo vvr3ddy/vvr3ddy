@@ -29,7 +29,7 @@ function Editor() {
   // Check auth on load
   useEffect(() => {
     const checkAuth = async () => {
-      const savedPassword = localStorage.getItem('admin_password');
+      const savedPassword = localStorage.getItem('blog_admin_key');
       if (savedPassword) {
         try {
           const res = await fetch('/api/verify', {
@@ -94,7 +94,7 @@ function Editor() {
         headers: { 'x-admin-password': password }
       });
       if (res.ok) {
-        localStorage.setItem('admin_password', password);
+        localStorage.setItem('blog_admin_key', password);
         setIsAuthorized(true);
       } else {
         setMessage('Incorrect password');
@@ -104,6 +104,12 @@ function Editor() {
     } finally {
       setAuthChecking(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('blog_admin_key');
+    setPassword('');
+    setIsAuthorized(false);
   };
 
   const handleSave = async () => {
@@ -186,6 +192,12 @@ function Editor() {
         <header className="p-4 border-b border-gray-200 flex justify-between items-center bg-white/50 backdrop-blur">
           <h1 className="font-sans font-bold text-sm text-gray-500 uppercase tracking-widest">Studio {editSlug ? '(Editing)' : ''}</h1>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleLogout}
+              className="text-gray-400 hover:text-red-600 text-xs font-sans font-medium px-3 py-2 transition-colors"
+            >
+              Logout
+            </button>
             <button
               onClick={handleSave}
               disabled={isPending}
