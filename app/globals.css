@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Force selector strategy for dark mode (Next-Themes adds .dark class to html) */
+@variant dark (&:where(.dark, .dark *));
+
 /* Import Computer Modern Serif font from CDN */
 @font-face {
   font-family: 'CMU Serif';
@@ -9,7 +12,7 @@
   font-style: normal;
   font-display: swap;
 }
-
+/* ... (keep other font faces if they were there, but for brevity in replacement ensuring we have them) */
 @font-face {
   font-family: 'CMU Serif';
   src: url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/cmunbx.woff') format('woff');
@@ -22,7 +25,7 @@
   font-family: 'CMU Serif';
   src: url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/cmunsl.woff') format('woff');
   font-weight: normal;
-  font-style: italic; /* Using italic for slanted */
+  font-style: italic;
   font-display: swap;
 }
 
