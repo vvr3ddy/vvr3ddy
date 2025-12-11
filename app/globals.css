@@ -45,14 +45,19 @@
 
 body {
   font-family: var(--font-sans);
-  @apply bg-white text-black dark:bg-[#0a0a0a] dark:text-gray-100 transition-colors duration-300;
+  @apply bg-white text-black dark:bg-[#0a0a0a] dark:text-gray-100;
 }
 
-/* Global smooth transition for theme changes */
-body, div, a, p, h1, h2, h3, h4, h5, h6, span, button, svg, hr, input, textarea {
-  transition-property: background-color, border-color, color, fill, stroke;
+/* Apply transitions to html and body specifically for the main background */
+html, body {
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Global smooth transition for all elements */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+  transition-duration: 500ms;
 }
 
 .prose {
