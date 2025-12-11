@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
+import CustomImage from '@/components/mdx/CustomImage';
 
 // Force static generation for GitHub Pages
 export async function generateStaticParams() {
@@ -24,6 +25,10 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       remarkPlugins: [remarkMath, remarkGfm],
       rehypePlugins: [rehypeKatex],
     },
+  };
+
+  const components = {
+    img: CustomImage,
   };
 
   const isDev = process.env.NODE_ENV === 'development';
@@ -64,7 +69,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       </header>
 
       <div className="prose prose-lg prose-gray dark:prose-invert hover:prose-a:text-black dark:hover:prose-a:text-white">
-        <MDXRemote source={post.content} options={options} />
+        <MDXRemote source={post.content} options={options} components={components} />
       </div>
 
       <hr className="my-12 border-gray-200 dark:border-gray-800" />
