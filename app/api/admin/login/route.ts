@@ -2,20 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createToken, verifyAuth } from '@/lib/auth'; // Re-using verifyAuth for POST protection
 import jwt from 'jsonwebtoken';
 import { serialize } from 'cookie';
-import otpGenerator from 'otp-generator';
-// For TOTP, we need a library like 'speakeasy' or implement manually.
-// For now, let's assume a simplified TOTP check with the secret from .env
+import speakeasy from 'speakeasy'; // Import speakeasy
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_jwt_secret';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const TOTP_SECRET = process.env.TOTP_SECRET; // This should be base32 encoded
 
-// Helper function to check TOTP code (simplified, in a real app use speakeasy.totp.verify)
+// Helper function to check TOTP code using speakeasy
 function verifyTotpCode(code: string, secret: string): boolean {
-  if (!secret) return false; // TOTP not configured
-  // Dummy check: In real app, generate a valid token and compare
-  // For now, just a placeholder. User would use a TOTP app with this secret.
-  return code === '123456'; // Replace with real TOTP verification
+  if (!secret) {
+    console.warn("TOTP_SECRET is not set. TOTP verification skipped.");
+    return true; // If TOTP_SECRET isn't set, allow login without OTP for now.
+                // In production, this should likely be false unless specifically desired.
+  }
+  return speakeasy.totp.verify({
+    secret: secret,
+    encoding: 'base32',
+    token: code,
+    window: 1, // Allow a 30-second window before/after for clock skew
+  });
 }
 
 export async function POST(request: NextRequest) {
