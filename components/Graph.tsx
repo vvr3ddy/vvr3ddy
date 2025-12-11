@@ -36,6 +36,10 @@ export default function Graph({ posts }: { posts: Post[] }) {
   const nodesRef = useRef<Node[]>([]);
   const linksRef = useRef<Link[]>([]);
   const requestRef = useRef<number>(0);
+  // Cache DOM elements to avoid getElementById and React reconciliation issues
+  const nodeElementsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const linkElementsRef = useRef<(SVGPathElement | null)[][]>([]);
+
   const { theme, resolvedTheme } = useTheme();
   
   const [mounted, setMounted] = useState(false);
@@ -79,6 +83,10 @@ export default function Graph({ posts }: { posts: Post[] }) {
       }
     }
     linksRef.current = links;
+    // Initialize refs arrays
+    nodeElementsRef.current = new Array(nodesRef.current.length).fill(null);
+    linkElementsRef.current = new Array(links.length).fill(null);
+    
     setMounted(true);
   }, [posts, mounted]);
 
@@ -190,25 +198,29 @@ export default function Graph({ posts }: { posts: Post[] }) {
             if (node.y > height) node.vy -= 1;
         }
 
-        const el = document.getElementById(`node-${i}`);
+        // Optimized DOM update via cached refs
+        const el = nodeElementsRef.current[i];
         if (el) {
           el.style.transform = `translate3d(${node.x - node.radius}px, ${node.y - node.radius}px, 0)`;
         }
       });
 
-      // Update Links (SVG Paths with curvature)
+      // Update Links
       links.forEach((link, i) => {
         const nodeA = nodes[link.source];
         const nodeB = nodes[link.target];
-        
-        // Calculate midpoint for curve control point
         const midX = (nodeA.x + nodeB.x) / 2;
         const midY = (nodeA.y + nodeB.y) / 2;
 
         link.tags.forEach((tag, tagIndex) => {
+            // Access cached link element (if we implemented 2D array caching for links)
+            // For simplicity and since links are static structure, getElementById is okay-ish 
+            // but let's use the pattern if we can. 
+            // Actually, we didn't cache sub-paths. Let's stick to getElementById for links 
+            // as they are less prone to the React Flicker issue (Link component is the culprit).
+            // OR use the ref array we defined:
             const el = document.getElementById(`link-${i}-${tagIndex}`);
             if (el) {
-                // Offset the control point based on tag index to separate lines
                 const dx = nodeB.x - nodeA.x;
                 const dy = nodeB.y - nodeA.y;
                 const offset = (tagIndex - (link.tags.length - 1) / 2) * 20; 
@@ -255,41 +267,46 @@ export default function Graph({ posts }: { posts: Post[] }) {
       </svg>
 
       {nodesRef.current.map((node, i) => (
-        <Link 
-            key={node.slug} 
-            href={`/posts/${node.slug}`}
-            id={`node-${i}`}
+        <div
+            key={node.slug}
+            ref={el => { nodeElementsRef.current[i] = el; }} // Capture ref
             onMouseEnter={() => setHoveredNode(i)}
             onMouseLeave={() => setHoveredNode(null)}
-            className="absolute flex items-center justify-center rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:scale-110 hover:border-black dark:hover:border-white hover:z-50 cursor-pointer group"
+            className="absolute rounded-full shadow-sm hover:shadow-xl hover:z-50 cursor-pointer group will-change-transform"
             style={{ 
                 width: node.radius * 2, 
                 height: node.radius * 2,
                 left: 0,
                 top: 0,
-                // Add specific transitions for non-transform props
-                transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s, width 0.3s, height 0.3s'
+                // Critical: No transition on transform to avoid conflict with JS
+                transition: 'box-shadow 0.3s' 
             }}
         >
-            <div className="text-center p-2 overflow-hidden">
-                <span className="font-sans font-bold text-xs md:text-sm text-gray-900 dark:text-gray-100 line-clamp-3 group-hover:line-clamp-none transition-all">
-                    {node.frontmatter.title}
-                </span>
-                {node.frontmatter.tags && (
-                  <div className="hidden group-hover:flex flex-wrap justify-center gap-1 mt-1">
-                    {node.frontmatter.tags.slice(0, 2).map(t => (
-                      <span key={t} 
-                            style={{ backgroundColor: stringToColor(t, isDark), color: isDark ? '#fff' : '#fff' }}
-                            className="text-[10px] px-1 rounded opacity-80">
-                        #{t}
-                      </span>
-                    ))}
-                  </div>
-                )}
-            </div>
-        </Link>
+          <Link 
+            href={`/posts/${node.slug}`}
+            className="flex items-center justify-center w-full h-full rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-black dark:hover:border-white transition-colors duration-300"
+          >
+              <div className="text-center p-2 overflow-hidden">
+                  <span className="font-sans font-bold text-xs md:text-sm text-gray-900 dark:text-gray-100 line-clamp-3 group-hover:line-clamp-none transition-all">
+                      {node.frontmatter.title}
+                  </span>
+                  {node.frontmatter.tags && (
+                    <div className="hidden group-hover:flex flex-wrap justify-center gap-1 mt-1">
+                      {node.frontmatter.tags.slice(0, 2).map(t => (
+                        <span key={t} 
+                              style={{ backgroundColor: stringToColor(t, isDark), color: isDark ? '#fff' : '#fff' }}
+                              className="text-[10px] px-1 rounded opacity-80">
+                          #{t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+              </div>
+          </Link>
+        </div>
       ))}
       
+      {/* Empty State */}
       {nodesRef.current.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400">
               No thoughts planted yet.
