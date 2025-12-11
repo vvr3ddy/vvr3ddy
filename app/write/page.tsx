@@ -6,13 +6,15 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { useSearchParams, useRouter } from 'next/navigation'; // Added useRouter
-import { Lock } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuthStatus } from '@/hooks/useAuthStatus'; // Import useAuthStatus
 
 function Editor() {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get('slug');
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
+
+  const { isAuthenticated, isLoading, redirectToLogin } = useAuthStatus(); // Use the auth hook
 
   const [content, setContent] = useState('# Hello World\n\nStart writing...');
   const [title, setTitle] = useState('');
@@ -20,50 +22,31 @@ function Editor() {
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   const [date, setDate] = useState('');
-  const [password, setPassword] = useState('');
   const [isPending, setIsPending] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [authChecking, setAuthChecking] = useState(true);
   const [message, setMessage] = useState('');
 
-  // Check auth on load
+  // Redirect if not authenticated and not loading
   useEffect(() => {
-    const checkAuth = async () => {
-      const savedPassword = localStorage.getItem('blog_admin_key');
-      if (savedPassword) {
-        try {
-          const res = await fetch('/api/verify', {
-            method: 'POST',
-            headers: { 'x-admin-password': savedPassword }
-          });
-          if (res.ok) {
-            setPassword(savedPassword);
-            setIsAuthorized(true);
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
-      setAuthChecking(false);
-    };
-    checkAuth();
-  }, []);
+    if (!isLoading && !isAuthenticated) {
+      redirectToLogin();
+    }
+  }, [isAuthenticated, isLoading, redirectToLogin]);
 
-  // Fetch post data once authorized (and if editing)
+  // Fetch post data once authenticated and if editing
   useEffect(() => {
-    if (editSlug && isAuthorized) {
-      setIsLoading(true);
+    if (editSlug && isAuthenticated) {
+      setIsPending(true); // Reusing isPending for loading state
       fetch('/api/post', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-password': password,
         },
-        body: JSON.stringify({ slug: editSlug }),
       })
         .then(res => {
-            if (res.status === 401) throw new Error('Unauthorized');
+            if (res.status === 401) { // Session expired or invalid
+              redirectToLogin();
+              throw new Error('Unauthorized');
+            }
             return res.json();
         })
         .then(data => {
@@ -80,38 +63,21 @@ function Editor() {
         })
         .catch(err => {
           console.error(err);
-          setMessage('Error loading post.');
+          if (err.message !== 'Unauthorized') setMessage('Error loading post.');
         })
-        .finally(() => setIsLoading(false));
+        .finally(() => setIsPending(false));
     }
-  }, [editSlug, isAuthorized, password]);
+  }, [editSlug, isAuthenticated, redirectToLogin]); // Removed password from deps
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthChecking(true);
+  const handleLogout = async () => {
     try {
-      const res = await fetch('/api/verify', {
-        method: 'POST',
-        headers: { 'x-admin-password': password }
-      });
-      if (res.ok) {
-        localStorage.setItem('blog_admin_key', password);
-        setIsAuthorized(true);
-      } else {
-        setMessage('Incorrect password');
-      }
+      await fetch('/api/admin/logout', { method: 'POST' });
+      localStorage.removeItem('blog_admin_key'); // Clear client-side stored password
+      router.push('/admin/login');
     } catch (error) {
-      setMessage('Login failed');
-    } finally {
-      setAuthChecking(false);
+      console.error('Logout error:', error);
+      setMessage('An error occurred during logout.');
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('blog_admin_key');
-    setPassword('');
-    setIsAuthorized(false);
-    setMessage('');
   };
 
   const handleSave = async () => {
@@ -123,7 +89,6 @@ function Editor() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-password': password,
         },
         body: JSON.stringify({
           title,
@@ -137,19 +102,14 @@ function Editor() {
 
       if (response.status === 401) {
         setMessage('Unauthorized: Session expired');
-        setIsAuthorized(false);
+        redirectToLogin();
         return;
       }
 
       const result = await response.json();
       if (result.success) {
         setMessage(result.message);
-        // Clear edit slug so it acts like a new post on next access
-        if (editSlug) {
-            router.replace(`/write?slug=${slug}`); // Update URL if slug changed
-        } else {
-            router.replace(`/write?slug=${slug}`); // Navigate to edit mode for the new post
-        }
+        router.push(`/write?slug=${slug}`); // Update URL (or navigate if slug changed)
       } else {
         setMessage(result.message || 'Failed to save post.');
       }
@@ -176,14 +136,13 @@ function Editor() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-password': password,
         },
         body: JSON.stringify({ slug: editSlug }),
       });
 
       if (response.status === 401) {
         setMessage('Unauthorized: Session expired');
-        setIsAuthorized(false);
+        redirectToLogin();
         return;
       }
 
@@ -202,42 +161,11 @@ function Editor() {
     }
   };
 
-  if (authChecking) {
-    return <div className="flex h-screen items-center justify-center text-gray-400 font-sans text-sm animate-pulse">Verifying...</div>;
+  if (isLoading || !isAuthenticated) { // Show loading until auth status is known, then redirect if not auth
+    return <div className="flex h-screen items-center justify-center text-gray-400 font-sans text-sm animate-pulse">Loading Editor...</div>;
   }
 
-  if (!isAuthorized) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#fdfbf7] dark:bg-[#0a0a0a] transition-colors duration-500">
-        <form onSubmit={handleLogin} className="flex flex-col items-center gap-4 w-full max-w-xs px-6">
-          <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-2 transition-colors">
-            <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-          </div>
-          <h1 className="font-sans font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">Restricted Access</h1>
-          <input
-            type="password"
-            placeholder="Enter admin password"
-            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded px-3 py-2 text-center font-sans text-sm outline-none focus:border-black dark:focus:border-white dark:text-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoFocus
-          />
-          <button
-            type="submit"
-            className="w-full bg-black dark:bg-white text-white dark:text-black rounded px-4 py-2 font-sans text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-          >
-            Unlock Studio
-          </button>
-          {message && <p className="text-red-500 text-xs font-sans mt-2">{message}</p>}
-        </form>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return <div className="flex h-screen items-center justify-center text-gray-500 dark:text-gray-400 font-sans bg-[#fdfbf7] dark:bg-[#0a0a0a]">Loading post content...</div>;
-  }
-
+  // Render the Editor UI only if authenticated
   return (
     <div className="flex h-screen w-full bg-[#fdfbf7] dark:bg-[#0a0a0a] overflow-hidden transition-colors duration-500">
       {/* Editor Pane (Left) */}

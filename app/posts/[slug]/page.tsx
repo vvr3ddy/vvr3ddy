@@ -9,6 +9,7 @@ import remarkGfm from 'remark-gfm';
 import remarkUnwrapImages from 'remark-unwrap-images';
 import CustomImage from '@/components/mdx/CustomImage';
 import PostActions from '@/components/PostActions';
+import { useAuthStatus } from '@/hooks/useAuthStatus'; // Import useAuthStatus
 
 // Force static generation for GitHub Pages
 export async function generateStaticParams() {
@@ -22,6 +23,8 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
   const { slug } = await params;
   const post = getPostBySlug(slug);
 
+  const { isAuthenticated, isLoading } = useAuthStatus(); // Use the auth hook
+
   const options = {
     mdxOptions: {
       remarkPlugins: [remarkMath, remarkGfm, remarkUnwrapImages],
@@ -32,8 +35,6 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
   const components = {
     img: CustomImage,
   };
-
-  const isDev = process.env.NODE_ENV === 'development';
 
   return (
     <article className="min-h-screen max-w-3xl mx-auto px-6 py-12 md:py-20 relative">
@@ -46,7 +47,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           <X className="w-5 h-5" />
         </Link>
 
-        {isDev && (
+        {isAuthenticated && !isLoading && ( // Show edit button only if authenticated
           <Link
             href={`/write?slug=${slug}`}
             className="inline-flex items-center text-xs font-mono text-gray-400 hover:text-black dark:hover:text-white hover:underline"
