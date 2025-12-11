@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server'; // Import NextRequest
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { verifyAuth } from '@/lib/auth'; // Import verifyAuth
 
-export async function POST(request: Request) {
-  if (process.env.NODE_ENV !== 'development') {
-     return NextResponse.json({ success: false, message: 'Editing allowed in dev only' }, { status: 403 });
+export async function POST(request: NextRequest) { // Changed Request to NextRequest
+  const authResponse = await verifyAuth(request);
+  if (authResponse) {
+    return authResponse; // Authentication failed
   }
-
-  const password = request.headers.get('x-admin-password');
-  if (password !== process.env.ADMIN_PASSWORD) {
-    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  
+  // Existing NODE_ENV check (can be removed if auth middleware handles dev-only, but keeping for now)
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json({ success: false, message: 'Editing allowed in dev only' }, { status: 403 });
   }
 
   try {
