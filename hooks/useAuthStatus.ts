@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 export function useAuthStatus() {
@@ -27,13 +27,13 @@ export function useAuthStatus() {
     checkAuth();
   }, []);
 
-  const redirectToLogin = () => {
+  const redirectToLogin = useCallback(() => {
     if (!isAuthenticated && !isLoading) {
       router.push('/admin/login');
     }
-  };
+  }, [isAuthenticated, isLoading, router]); // Dependencies for useCallback
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await fetch('/api/admin/logout', { method: 'POST' });
       setIsAuthenticated(false);
@@ -42,7 +42,7 @@ export function useAuthStatus() {
       console.error('Logout error:', error);
       // Optionally, set an error message
     }
-  };
+  }, [router]); // Dependencies for useCallback
 
   return { isAuthenticated, isLoading, redirectToLogin, logout };
 }
