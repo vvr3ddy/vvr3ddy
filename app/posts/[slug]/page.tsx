@@ -8,6 +8,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkUnwrapImages from 'remark-unwrap-images';
 import CustomImage from '@/components/mdx/CustomImage';
+import PostActions from '@/components/PostActions';
 
 // Force static generation for GitHub Pages
 export async function generateStaticParams() {
@@ -72,6 +73,8 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       <div className="prose prose-lg prose-gray dark:prose-invert hover:prose-a:text-black dark:hover:prose-a:text-white">
         <MDXRemote source={post.content} options={options} components={components} />
       </div>
+
+      <PostActions slug={slug} title={post.frontmatter.title} />
 
       <hr className="my-12 border-gray-200 dark:border-gray-800" />
       
