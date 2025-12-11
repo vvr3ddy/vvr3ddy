@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useTheme } from 'next-themes';
 
 interface Point {
   x: number;
@@ -11,6 +12,7 @@ interface Point {
 
 export default function Graph() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme, resolvedTheme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -28,6 +30,11 @@ export default function Graph() {
     const numPoints = 50;
     const connectionDistance = 150;
 
+    // Determine colors based on theme
+    const isDark = (theme === 'system' ? resolvedTheme : theme) === 'dark';
+    const pointColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+    const lineColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
     for (let i = 0; i < numPoints; i++) {
       points.push({
         x: Math.random() * width,
@@ -36,6 +43,8 @@ export default function Graph() {
         vy: (Math.random() - 0.5) * 0.5,
       });
     }
+
+    let animationId: number;
 
     const animate = () => {
       ctx.clearRect(0, 0, width, height);
@@ -51,12 +60,12 @@ export default function Graph() {
         // Draw point
         ctx.beginPath();
         ctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        ctx.fillStyle = pointColor;
         ctx.fill();
       }
 
       // Draw connections
-      ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+      ctx.strokeStyle = lineColor;
       ctx.lineWidth = 1;
       
       for (let i = 0; i < points.length; i++) {
@@ -74,7 +83,7 @@ export default function Graph() {
         }
       }
 
-      requestAnimationFrame(animate);
+      animationId = requestAnimationFrame(animate);
     };
 
     const handleResize = () => {
@@ -85,18 +94,18 @@ export default function Graph() {
     };
 
     window.addEventListener('resize', handleResize);
-    const animationId = requestAnimationFrame(animate);
+    animate();
 
     return () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [theme, resolvedTheme]); // Re-run effect when theme changes
 
   return (
     <canvas 
       ref={canvasRef} 
-      className="fixed inset-0 -z-10 pointer-events-none opacity-60"
+      className="fixed inset-0 -z-10 pointer-events-none opacity-60 transition-colors duration-500"
     />
   );
 }

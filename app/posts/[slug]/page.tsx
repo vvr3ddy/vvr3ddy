@@ -33,7 +33,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       <div className="flex justify-between items-start mb-10">
         <Link 
           href="/" 
-          className="inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-900"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 hover:text-gray-900 dark:hover:text-white"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
@@ -42,7 +42,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         {isDev && (
           <Link
             href={`/write?slug=${slug}`}
-            className="inline-flex items-center text-xs font-mono text-gray-400 hover:text-black hover:underline"
+            className="inline-flex items-center text-xs font-mono text-gray-400 hover:text-black dark:hover:text-white hover:underline"
           >
             <Edit2 className="w-3 h-3 mr-1" />
             Edit Post
@@ -51,26 +51,26 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       </div>
 
       <header className="mb-12">
-        <div className="flex items-center text-sm text-gray-500 font-sans mb-3">
+        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 font-sans mb-3">
           <time dateTime={post.frontmatter.date}>
             {format(new Date(post.frontmatter.date), 'MMMM d, yyyy')}
           </time>
           <span className="mx-2">·</span>
           <span className="capitalize">{post.frontmatter.tags?.join(', ') || 'Note'}</span>
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold font-sans text-gray-900 leading-tight">
+        <h1 className="text-3xl md:text-4xl font-bold font-sans text-gray-900 dark:text-gray-100 leading-tight">
           {post.frontmatter.title}
         </h1>
       </header>
 
-      <div className="prose prose-lg prose-gray hover:prose-a:text-black">
+      <div className="prose prose-lg prose-gray dark:prose-invert hover:prose-a:text-black dark:hover:prose-a:text-white">
         <MDXRemote source={post.content} options={options} />
       </div>
 
-      <hr className="my-12 border-gray-200" />
+      <hr className="my-12 border-gray-200 dark:border-gray-800" />
       
       <div className="flex justify-between items-center">
-        <p className="font-serif italic text-gray-500">
+        <p className="font-serif italic text-gray-500 dark:text-gray-400">
           Planting seeds for the future.
         </p>
       </div>
