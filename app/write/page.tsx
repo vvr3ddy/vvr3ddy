@@ -1,3 +1,13 @@
+import { useState, useEffect, Suspense, useRef } from 'react';
+import TextareaAutosize from 'react-textarea-autosize';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuthStatus } from '@/hooks/useAuthStatus';
+import { Home, Edit2, Trash2, LogOut, Save } from 'lucide-react'; // Import Home icon
+
 function Editor() {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get('slug');
@@ -239,21 +249,21 @@ function Editor() {
                 disabled={isPending}
                 className="text-red-500 border border-red-500 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20 text-xs font-sans font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
               >
-                Delete Post
+                <Trash2 className="w-3 h-3 inline-block mr-1" /> Delete Post
               </button>
             )}
             <button
               onClick={handleLogout}
               className="text-gray-600 border border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 dark:text-gray-400 text-xs font-sans font-medium px-3 py-1.5 rounded-md transition-colors"
             >
-              Logout
+              <LogOut className="w-3 h-3 inline-block mr-1" /> Logout
             </button>
             <button
               onClick={handleSave}
               disabled={isPending}
               className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded text-sm font-sans font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 transition-colors"
             >
-              {isPending ? 'Saving...' : 'Save Post'}
+              <Save className="w-3 h-3 inline-block mr-1" /> {isPending ? 'Saving...' : 'Save Post'}
             </button>
           </div>
         </header>
