@@ -1,34 +1,15 @@
-'use client';
-
 import Link from 'next/link';
 import { getAllPosts } from '@/lib/mdx';
 import { format } from 'date-fns';
 import Graph from '@/components/Graph';
-import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
-import { useEffect, useState } from 'react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Home() {
   const posts = getAllPosts();
-  const { setTheme, theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <main className="min-h-screen max-w-3xl mx-auto px-6 py-12 md:py-20 relative z-10">
-      <div className="absolute top-6 right-6">
-        {mounted && (
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-        )}
-      </div>
+      <ThemeToggle />
 
       <Graph />
       <header className="mb-16">
