@@ -41,6 +41,7 @@ function Editor() {
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ slug: editSlug }), // ADDED: Send the slug in the request body
       })
         .then(res => {
             if (res.status === 401) { // Session expired or invalid
