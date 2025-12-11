@@ -15,7 +15,7 @@ export function ThemeToggle() {
   if (!mounted) return null;
 
   return (
-    <div className="absolute top-6 right-6">
+    <div className="fixed top-6 right-6 z-50">
       <button
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"

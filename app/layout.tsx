@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "My Digital Garden",
@@ -21,6 +22,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+          <ThemeToggle />
           {children}
         </ThemeProvider>
       </body>

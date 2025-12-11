@@ -2,15 +2,12 @@ import Link from 'next/link';
 import { getAllPosts } from '@/lib/mdx';
 import { format } from 'date-fns';
 import Graph from '@/components/Graph';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Home() {
   const posts = getAllPosts();
 
   return (
     <main className="min-h-screen max-w-3xl mx-auto px-6 py-12 md:py-20 relative z-10">
-      <ThemeToggle />
-
       <Graph />
       <header className="mb-16">
         <h1 className="font-sans text-3xl font-bold tracking-tight mb-2 dark:text-white">My Digital Garden</h1>
