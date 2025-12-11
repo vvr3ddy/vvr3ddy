@@ -40,6 +40,8 @@ export default function Graph({ posts }: { posts: Post[] }) {
   // Cache DOM elements to avoid getElementById and React reconciliation issues
   const nodeElementsRef = useRef<(HTMLDivElement | null)[]>([]);
   const linkElementsRef = useRef<(SVGPathElement | null)[][]>([]);
+  // Store neighbors for fast lookup: neighbors.current[nodeIndex] = [neighborIndex, neighborIndex...]
+  const neighborsRef = useRef<number[][]>([]);
 
   const { theme, resolvedTheme } = useTheme();
   const pathname = usePathname();
@@ -69,6 +71,8 @@ export default function Graph({ posts }: { posts: Post[] }) {
     }));
 
     const links: Link[] = [];
+    const neighbors: number[][] = Array.from({ length: posts.length }, () => []);
+
     for (let i = 0; i < posts.length; i++) {
       for (let j = i + 1; j < posts.length; j++) {
         const tagsA = posts[i].frontmatter.tags || [];
@@ -82,10 +86,15 @@ export default function Graph({ posts }: { posts: Post[] }) {
               strength: sharedTags.length,
               tags: sharedTags 
             });
+          // Build adjacency list
+          neighbors[i].push(j);
+          neighbors[j].push(i);
         }
       }
     }
     linksRef.current = links;
+    neighborsRef.current = neighbors;
+    
     // Initialize refs arrays
     nodeElementsRef.current = new Array(nodesRef.current.length).fill(null);
     linkElementsRef.current = new Array(links.length).fill(null);
@@ -201,7 +210,6 @@ export default function Graph({ posts }: { posts: Post[] }) {
             if (node.y > height) node.vy -= 1;
         }
 
-        // Optimized DOM update via cached refs
         const el = nodeElementsRef.current[i];
         if (el) {
           el.style.transform = `translate3d(${node.x - node.radius}px, ${node.y - node.radius}px, 0)`;
@@ -271,7 +279,11 @@ export default function Graph({ posts }: { posts: Post[] }) {
       {nodesRef.current.map((node, i) => {
         const isHovered = hoveredNode === i;
         const isFocusMode = hoveredNode !== null;
-        const isDimmed = isFocusMode && !isHovered;
+        // Check if this node is a neighbor of the hovered node
+        const isNeighbor = hoveredNode !== null && neighborsRef.current[hoveredNode]?.includes(i);
+        
+        // Dim if we are in focus mode, but this node is NOT hovered AND NOT a neighbor
+        const isDimmed = isFocusMode && !isHovered && !isNeighbor;
 
         return (
         <div
@@ -290,10 +302,12 @@ export default function Graph({ posts }: { posts: Post[] }) {
         >
           <Link 
             href={`/posts/${node.slug}`}
-            className={`flex items-center justify-center w-full h-full rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-black dark:hover:border-white transition-all duration-300 ease-out ${
-                isHovered ? 'scale-150 z-50' : ''
+            className={`flex items-center justify-center w-full h-full rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-black dark:hover:border-white transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                isHovered ? 'scale-[1.6] z-50' : ''
             } ${
-                isDimmed ? 'scale-50 opacity-40 grayscale' : 'scale-100'
+                isNeighbor ? 'scale-110 opacity-100 ring-1 ring-gray-200 dark:ring-gray-700' : ''
+            } ${
+                isDimmed ? 'scale-50 opacity-20 grayscale' : 'scale-100'
             }`}
           >
               <div className={`text-center p-2 overflow-hidden transition-opacity duration-300 ${isDimmed ? 'opacity-0' : 'opacity-100'}`}>
