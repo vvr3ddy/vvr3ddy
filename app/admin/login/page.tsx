@@ -3,16 +3,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { QrCode } from 'lucide-react'; // Lock icon removed, using input field's styling
+import { QrCode } from 'lucide-react';
 import Image from 'next/image';
-import OtpInput from '@/components/admin/OtpInput'; // Import OtpInput
+import OtpInput from '@/components/admin/OtpInput';
+import PasswordInput from '@/components/admin/PasswordInput'; // Import PasswordInput
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [message, setMessage] = useState('');
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
-  const [totpSecretDisplay, setTotpSecretDisplay] = useState(''); // Changed name to avoid conflict
+  const [totpSecretDisplay, setTotpSecretDisplay] = useState('');
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
@@ -60,7 +61,7 @@ export default function AdminLoginPage() {
         const data = await res.json();
         if(data.success) {
             setQrCodeDataUrl(data.qrCodeDataUrl);
-            setTotpSecretDisplay(data.secret); // Use new state
+            setTotpSecretDisplay(data.secret);
             setMessage("Scan QR code and then add TOTP to your .env.local file. Remember to restart your server.");
         } else {
             setMessage(data.message || "Failed to generate TOTP secret.");
@@ -81,14 +82,12 @@ export default function AdminLoginPage() {
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-            <input
-              type="password"
-              className={`mt-1 block w-full rounded-md border shadow-sm focus:outline-none focus:ring-2 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all
-                ${loginError ? 'border-red-500 ring-red-500 animate-wiggle' : 'border-gray-300 dark:border-gray-700 focus:border-indigo-500 focus:ring-indigo-500'}`}
+            <PasswordInput
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoFocus
+              onChange={setPassword}
+              isError={loginError}
+              disabled={loading}
+              autoFocus={true}
             />
           </div>
           <div>
