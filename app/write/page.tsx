@@ -1,21 +1,9 @@
-'use client';
-
-import { useState, useEffect, Suspense, useRef } from 'react';
-import TextareaAutosize from 'react-textarea-autosize';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useAuthStatus } from '@/hooks/useAuthStatus'; // Import useAuthStatus
-
 function Editor() {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get('slug');
   const router = useRouter();
 
-  const { isAuthenticated, isLoading, redirectToLogin, logout } = useAuthStatus(); // Use the auth hook, destructure logout
-
+  const { isAuthenticated, isLoading, redirectToLogin, logout } = useAuthStatus();
   const [content, setContent] = useState('# Hello World\n\nStart writing...');
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -24,6 +12,14 @@ function Editor() {
   const [date, setDate] = useState('');
   const [isPending, setIsPending] = useState(false);
   const [message, setMessage] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Store initial values to compare for unsaved changes
+  const initialContent = useRef('');
+  const initialTitle = useRef('');
+  const initialSlug = useRef('');
+  const initialDescription = useRef('');
+  const initialTags = useRef('');
 
   // Use a ref to store the initial editSlug to determine if it's a new post or slug changed
   const initialEditSlugRef = useRef(editSlug);
@@ -44,7 +40,7 @@ function Editor() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ slug: editSlug }), // ADDED: Send the slug in the request body
+        body: JSON.stringify({ slug: editSlug }),
       })
         .then(res => {
             if (res.status === 401) { // Session expired or invalid
@@ -61,6 +57,14 @@ function Editor() {
             setTags(Array.isArray(data.post.tags) ? data.post.tags.join(', ') : data.post.tags);
             setContent(data.post.content);
             setDate(data.post.date);
+
+            // Store initial values
+            initialContent.current = data.post.content;
+            initialTitle.current = data.post.title;
+            initialSlug.current = data.post.slug;
+            initialDescription.current = data.post.description;
+            initialTags.current = Array.isArray(data.post.tags) ? data.post.tags.join(', ') : data.post.tags || '';
+            setHasUnsavedChanges(false); // Reset changes status
           } else {
             setMessage('Failed to load post.');
           }
@@ -73,9 +77,48 @@ function Editor() {
     }
   }, [editSlug, isAuthenticated, redirectToLogin]);
 
+  // Check for unsaved changes
+  useEffect(() => {
+    const checkChanges = () => {
+      if (editSlug) { // Editing existing post
+        return (
+          content !== initialContent.current ||
+          title !== initialTitle.current ||
+          slug !== initialSlug.current ||
+          description !== initialDescription.current ||
+          tags !== initialTags.current
+        );
+      } else { // New post
+        return (
+          content !== '# Hello World\n\nStart writing...' ||
+          title !== '' ||
+          slug !== '' ||
+          description !== '' ||
+          tags !== ''
+        );
+      }
+    };
+    setHasUnsavedChanges(checkChanges());
+  }, [content, title, slug, description, tags, editSlug]);
+
+
+  // Warn before unload (browser close/refresh)
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        event.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]);
+
+
   const handleLogout = async () => {
-    setMessage(''); // Clear any messages before logging out
-    await logout(); // Use the logout function from the hook
+    setMessage('');
+    await logout();
   };
 
   const handleSave = async () => {
@@ -107,12 +150,10 @@ function Editor() {
       const result = await response.json();
       if (result.success) {
         setMessage(result.message);
-        // Only navigate if it's a new post or the slug has changed
+        setHasUnsavedChanges(false); // Reset changes after successful save
         if (initialEditSlugRef.current === null || initialEditSlugRef.current !== slug) {
-          router.push(`/write?slug=${slug}`); // Navigate to edit mode for the new/renamed post
+          router.push(`/write?slug=${slug}`);
         }
-        // If it's an existing post and slug didn't change, no navigation needed.
-        // The current editor state already reflects the saved changes.
       } else {
         setMessage(result.message || 'Failed to save post.');
       }
@@ -125,7 +166,7 @@ function Editor() {
   };
 
   const handleDelete = async () => {
-    if (!editSlug) return; // Can only delete existing posts
+    if (!editSlug) return;
 
     if (!window.confirm(`Are you sure you want to delete the post "${title}"? This action cannot be undone.`)) {
       return;
@@ -152,7 +193,8 @@ function Editor() {
       const result = await response.json();
       if (result.success) {
         setMessage(result.message);
-        router.push('/'); // Redirect to home page
+        setHasUnsavedChanges(false); // Reset changes after deletion
+        router.push('/');
       } else {
         setMessage(result.message || 'Failed to delete post.');
       }
@@ -162,6 +204,15 @@ function Editor() {
     } finally {
       setIsPending(false);
     }
+  };
+
+  const handleClickHome = () => {
+    if (hasUnsavedChanges) {
+      if (!window.confirm('You have unsaved changes. Are you sure you want to leave without saving?')) {
+        return;
+      }
+    }
+    router.push('/');
   };
 
   if (isLoading || !isAuthenticated) { // Show loading until auth status is known, then redirect if not auth
@@ -176,6 +227,12 @@ function Editor() {
         <header className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white/50 dark:bg-black/50 backdrop-blur transition-colors">
           <h1 className="font-sans font-bold text-sm text-gray-500 dark:text-gray-400 uppercase tracking-widest">Studio {editSlug ? '(Editing)' : ''}</h1>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleClickHome}
+              className="text-gray-600 border border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 dark:text-gray-400 text-xs font-sans font-medium px-3 py-1.5 rounded-md transition-colors"
+            >
+              <Home className="w-3 h-3 inline-block mr-1" /> Home
+            </button>
             {editSlug && (
               <button
                 onClick={handleDelete}
