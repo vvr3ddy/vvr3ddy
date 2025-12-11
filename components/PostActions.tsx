@@ -1,12 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Copy, Check, Heart } from 'lucide-react';
 
 export default function PostActions({ slug, title }: { slug: string, title: string }) {
   const [copied, setCopied] = useState(false);
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
+
+  // Fetch initial likes
+  useEffect(() => {
+    fetch(`/api/likes?slug=${slug}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.likes !== undefined) setLikes(data.likes);
+      })
+      .catch(err => console.error('Failed to fetch likes:', err));
+  }, [slug]);
 
   const handleShare = async () => {
     const url = `${window.location.origin}/posts/${slug}`;
@@ -17,7 +27,6 @@ export default function PostActions({ slug, title }: { slug: string, title: stri
           url
         });
       } catch (err) {
-        // Fallback to copy
         copyToClipboard(url);
       }
     } else {
@@ -31,12 +40,33 @@ export default function PostActions({ slug, title }: { slug: string, title: stri
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleLike = () => {
+  const handleLike = async () => {
     if (hasLiked) return;
-    setLikes(prev => prev + 1);
+    
+    // Optimistic UI update
     setHasLiked(true);
-    // Ideally this would sync with a backend, but for this static blog 
-    // it's a "local" delight feature for now.
+    setLikes(prev => prev + 1);
+
+    try {
+      const res = await fetch('/api/likes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setLikes(data.likes);
+      } else {
+        // Revert if failed
+        setHasLiked(false);
+        setLikes(prev => prev - 1);
+      }
+    } catch (error) {
+      console.error('Error liking post:', error);
+      setHasLiked(false);
+      setLikes(prev => prev - 1);
+    }
   };
 
   return (
