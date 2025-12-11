@@ -180,14 +180,14 @@ function Editor() {
               <button
                 onClick={handleDelete}
                 disabled={isPending}
-                className="text-red-500 hover:text-red-700 text-xs font-sans font-medium px-3 py-2 transition-colors disabled:opacity-50"
+                className="text-red-500 border border-red-500 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20 text-xs font-sans font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
               >
                 Delete Post
               </button>
             )}
             <button
               onClick={handleLogout}
-              className="text-gray-400 hover:text-red-600 text-xs font-sans font-medium px-3 py-2 transition-colors"
+              className="text-gray-600 border border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 dark:text-gray-400 text-xs font-sans font-medium px-3 py-1.5 rounded-md transition-colors"
             >
               Logout
             </button>
