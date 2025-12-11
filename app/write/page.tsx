@@ -25,6 +25,9 @@ function Editor() {
   const [isPending, setIsPending] = useState(false);
   const [message, setMessage] = useState('');
 
+  // Use a ref to store the initial editSlug to determine if it's a new post or slug changed
+  const initialEditSlugRef = useRef(editSlug);
+
   // Redirect if not authenticated and not loading
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -104,7 +107,12 @@ function Editor() {
       const result = await response.json();
       if (result.success) {
         setMessage(result.message);
-        router.push(`/write?slug=${slug}`); // Update URL (or navigate if slug changed)
+        // Only navigate if it's a new post or the slug has changed
+        if (initialEditSlugRef.current === null || initialEditSlugRef.current !== slug) {
+          router.push(`/write?slug=${slug}`); // Navigate to edit mode for the new/renamed post
+        }
+        // If it's an existing post and slug didn't change, no navigation needed.
+        // The current editor state already reflects the saved changes.
       } else {
         setMessage(result.message || 'Failed to save post.');
       }
