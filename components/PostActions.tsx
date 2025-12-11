@@ -8,7 +8,7 @@ export default function PostActions({ slug, title }: { slug: string, title: stri
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
 
-  // Fetch initial likes
+  // Fetch initial likes and check local storage for user's like status
   useEffect(() => {
     fetch(`/api/likes?slug=${slug}`)
       .then(res => res.json())
@@ -16,6 +16,11 @@ export default function PostActions({ slug, title }: { slug: string, title: stri
         if (data.likes !== undefined) setLikes(data.likes);
       })
       .catch(err => console.error('Failed to fetch likes:', err));
+
+    // Check if this user (on this browser) has already liked this post
+    if (localStorage.getItem(`liked_post_${slug}`)) {
+      setHasLiked(true);
+    }
   }, [slug]);
 
   const handleShare = async () => {
@@ -41,8 +46,8 @@ export default function PostActions({ slug, title }: { slug: string, title: stri
   };
 
   const handleLike = async () => {
-    if (hasLiked) return;
-    
+    if (hasLiked) return; // Prevent multiple likes from the same user
+
     // Optimistic UI update
     setHasLiked(true);
     setLikes(prev => prev + 1);
@@ -57,6 +62,7 @@ export default function PostActions({ slug, title }: { slug: string, title: stri
       const data = await res.json();
       if (data.success) {
         setLikes(data.likes);
+        localStorage.setItem(`liked_post_${slug}`, 'true'); // Persist like status in local storage
       } else {
         // Revert if failed
         setHasLiked(false);
