@@ -1,6 +1,67 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Import Computer Modern Serif font from CDN */
+@font-face {
+  font-family: 'CMU Serif';
+  src: url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/cmunrm.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'CMU Serif';
+  src: url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/cmunbx.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'CMU Serif';
+  src: url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/cmunsl.woff') format('woff');
+  font-weight: normal;
+  font-style: italic; /* Using italic for slanted */
+  font-display: swap;
+}
+
+
+body {
+  /* Apply Computer Modern to the entire body */
+  font-family: 'CMU Serif', serif;
+}
+
+/* Also ensure article content uses it specifically, overriding any other defaults */
+.prose {
+  font-family: 'CMU Serif', serif;
+}
+
+/* Override default font-sans if applied elsewhere for consistency */
+.font-sans {
+  font-family: 'CMU Serif', serif !important;
+}
+
+/* If there are specific elements meant to be sans-serif, they would need explicit overrides */
+/* For example, for headings if they are font-sans but user wants them to be Computer Modern Serif */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'CMU Serif', serif;
+}
+
+/* Ensure code blocks also look good */
+code {
+  font-family: 'CMU Typewriter Text', monospace;
+}
+
+/* Optionally, if a sans-serif version is desired for specific elements like UI/buttons */
+/* @font-face {
+  font-family: 'CMU Sans Serif';
+  src: url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/cmunss.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+} */
+
 :root {
   --background: #fdfbf7;
   --foreground: #1c1c1c;
