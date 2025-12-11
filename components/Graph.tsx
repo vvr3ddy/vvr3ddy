@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Post } from '@/lib/mdx';
 
 interface Node extends Post {
@@ -27,8 +28,8 @@ const stringToColor = (str: string, isDark: boolean) => {
   }
   const hue = Math.abs(hash % 360);
   return isDark 
-    ? `hsl(${hue}, 70%, 60%)` 
-    : `hsl(${hue}, 70%, 40%)`; 
+    ? `hsl(${hue}, 40%, 60%)` // Reduced saturation for minimal look
+    : `hsl(${hue}, 40%, 40%)`; 
 };
 
 export default function Graph({ posts }: { posts: Post[] }) {
@@ -41,6 +42,8 @@ export default function Graph({ posts }: { posts: Post[] }) {
   const linkElementsRef = useRef<(SVGPathElement | null)[][]>([]);
 
   const { theme, resolvedTheme } = useTheme();
+  const pathname = usePathname();
+  const isHome = pathname === '/';
   
   const [mounted, setMounted] = useState(false);
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
@@ -213,12 +216,6 @@ export default function Graph({ posts }: { posts: Post[] }) {
         const midY = (nodeA.y + nodeB.y) / 2;
 
         link.tags.forEach((tag, tagIndex) => {
-            // Access cached link element (if we implemented 2D array caching for links)
-            // For simplicity and since links are static structure, getElementById is okay-ish 
-            // but let's use the pattern if we can. 
-            // Actually, we didn't cache sub-paths. Let's stick to getElementById for links 
-            // as they are less prone to the React Flicker issue (Link component is the culprit).
-            // OR use the ref array we defined:
             const el = document.getElementById(`link-${i}-${tagIndex}`);
             if (el) {
                 const dx = nodeB.x - nodeA.x;
@@ -250,7 +247,12 @@ export default function Graph({ posts }: { posts: Post[] }) {
   if (!mounted) return null;
 
   return (
-    <div ref={containerRef} className="fixed inset-0 z-0 overflow-hidden bg-[#fdfbf7] dark:bg-[#0a0a0a] transition-colors duration-500">
+    <div 
+        ref={containerRef} 
+        className={`fixed inset-0 z-0 overflow-hidden bg-[#fdfbf7] dark:bg-[#0a0a0a] transition-all duration-1000 ${
+            isHome ? 'opacity-100' : 'opacity-20 pointer-events-none blur-[2px]'
+        }`}
+    >
       <svg className="absolute inset-0 w-full h-full pointer-events-none">
         {linksRef.current.map((link, i) => (
             link.tags.map((tag, tagIndex) => (
@@ -260,7 +262,7 @@ export default function Graph({ posts }: { posts: Post[] }) {
                     fill="none"
                     stroke={stringToColor(tag, isDark)}
                     strokeWidth={1.5}
-                    strokeOpacity={0.6}
+                    strokeOpacity={0.4}
                 />
             ))
         ))}
@@ -278,7 +280,6 @@ export default function Graph({ posts }: { posts: Post[] }) {
                 height: node.radius * 2,
                 left: 0,
                 top: 0,
-                // Critical: No transition on transform to avoid conflict with JS
                 transition: 'box-shadow 0.3s' 
             }}
         >

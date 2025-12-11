@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import Graph from "@/components/Graph";
+import { getAllPosts } from "@/lib/mdx";
 
 export const metadata: Metadata = {
   title: "My Digital Garden",
@@ -13,6 +15,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const posts = getAllPosts();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
@@ -21,6 +25,7 @@ export default function RootLayout({
             defaultTheme="system"
             enableSystem
           >
+          <Graph posts={posts} />
           <ThemeToggle />
           {children}
         </ThemeProvider>
