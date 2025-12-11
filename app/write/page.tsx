@@ -14,7 +14,7 @@ function Editor() {
   const editSlug = searchParams.get('slug');
   const router = useRouter();
 
-  const { isAuthenticated, isLoading, redirectToLogin } = useAuthStatus(); // Use the auth hook
+  const { isAuthenticated, isLoading, redirectToLogin, logout } = useAuthStatus(); // Use the auth hook, destructure logout
 
   const [content, setContent] = useState('# Hello World\n\nStart writing...');
   const [title, setTitle] = useState('');
@@ -67,17 +67,11 @@ function Editor() {
         })
         .finally(() => setIsPending(false));
     }
-  }, [editSlug, isAuthenticated, redirectToLogin]); // Removed password from deps
+  }, [editSlug, isAuthenticated, redirectToLogin]);
 
   const handleLogout = async () => {
-    try {
-      await fetch('/api/admin/logout', { method: 'POST' });
-      localStorage.removeItem('blog_admin_key'); // Clear client-side stored password
-      router.push('/admin/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-      setMessage('An error occurred during logout.');
-    }
+    setMessage(''); // Clear any messages before logging out
+    await logout(); // Use the logout function from the hook
   };
 
   const handleSave = async () => {

@@ -33,5 +33,16 @@ export function useAuthStatus() {
     }
   };
 
-  return { isAuthenticated, isLoading, redirectToLogin };
+  const logout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' });
+      setIsAuthenticated(false);
+      router.push('/admin/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Optionally, set an error message
+    }
+  };
+
+  return { isAuthenticated, isLoading, redirectToLogin, logout };
 }
