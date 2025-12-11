@@ -1,7 +1,7 @@
 import { getPostBySlug, getAllPosts } from '@/lib/mdx';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
-import { X, Edit2 } from 'lucide-react';
+import { X } from 'lucide-react'; // Removed Edit2 as it's now in PostAdminActions
 import { format } from 'date-fns';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -9,7 +9,7 @@ import remarkGfm from 'remark-gfm';
 import remarkUnwrapImages from 'remark-unwrap-images';
 import CustomImage from '@/components/mdx/CustomImage';
 import PostActions from '@/components/PostActions';
-import { useAuthStatus } from '@/hooks/useAuthStatus'; // Import useAuthStatus
+import PostAdminActions from '@/components/PostAdminActions'; // Import PostAdminActions
 
 // Force static generation for GitHub Pages
 export async function generateStaticParams() {
@@ -22,8 +22,6 @@ export async function generateStaticParams() {
 export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
-
-  const { isAuthenticated, isLoading } = useAuthStatus(); // Use the auth hook
 
   const options = {
     mdxOptions: {
@@ -47,15 +45,8 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           <X className="w-5 h-5" />
         </Link>
 
-        {isAuthenticated && !isLoading && ( // Show edit button only if authenticated
-          <Link
-            href={`/write?slug=${slug}`}
-            className="inline-flex items-center text-xs font-mono text-gray-400 hover:text-black dark:hover:text-white hover:underline"
-          >
-            <Edit2 className="w-3 h-3 mr-1" />
-            Edit Post
-          </Link>
-        )}
+        {/* Render the new client component for admin actions */}
+        <PostAdminActions slug={slug} />
       </div>
 
       <header className="mb-12">
