@@ -110,6 +110,7 @@ function Editor() {
     localStorage.removeItem('blog_admin_key');
     setPassword('');
     setIsAuthorized(false);
+    setMessage('');
   };
 
   const handleSave = async () => {
