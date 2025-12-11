@@ -17,7 +17,19 @@ interface Link {
   source: number; // index of source node
   target: number; // index of target node
   strength: number;
+  tags: string[]; // Shared tags causing this link
 }
+
+const stringToColor = (str: string, isDark: boolean) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash % 360);
+  return isDark 
+    ? `hsl(${hue}, 70%, 60%)` 
+    : `hsl(${hue}, 70%, 40%)`; 
+};
 
 export default function Graph({ posts }: { posts: Post[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,35 +38,29 @@ export default function Graph({ posts }: { posts: Post[] }) {
   const requestRef = useRef<number>(0);
   const { theme, resolvedTheme } = useTheme();
   
-  // State for rendering
   const [mounted, setMounted] = useState(false);
-  // State for interaction
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
   const hoveredNodeRef = useRef<number | null>(null);
 
-  // Sync ref with state for use in animation loop without dependency
   useEffect(() => {
     hoveredNodeRef.current = hoveredNode;
   }, [hoveredNode]);
 
-  // Initialize simulation
   useEffect(() => {
     if (!posts.length || mounted) return;
 
     const width = window.innerWidth;
     const height = window.innerHeight;
 
-    // Create Nodes
     nodesRef.current = posts.map((post) => ({
       ...post,
       x: Math.random() * width,
       y: Math.random() * height,
       vx: 0,
       vy: 0,
-      radius: 40 + Math.random() * 20, // Base size + variance
+      radius: 40 + Math.random() * 20,
     }));
 
-    // Create Links based on shared tags
     const links: Link[] = [];
     for (let i = 0; i < posts.length; i++) {
       for (let j = i + 1; j < posts.length; j++) {
@@ -63,7 +69,12 @@ export default function Graph({ posts }: { posts: Post[] }) {
         const sharedTags = tagsA.filter(t => tagsB.includes(t));
         
         if (sharedTags.length > 0) {
-          links.push({ source: i, target: j, strength: sharedTags.length });
+          links.push({ 
+              source: i, 
+              target: j, 
+              strength: sharedTags.length,
+              tags: sharedTags 
+            });
         }
       }
     }
@@ -71,21 +82,19 @@ export default function Graph({ posts }: { posts: Post[] }) {
     setMounted(true);
   }, [posts, mounted]);
 
-  // Physics Loop
   useEffect(() => {
     if (!mounted) return;
 
     let width = window.innerWidth;
     let height = window.innerHeight;
 
-    // Simulation params
-    const friction = 0.90; // Higher friction for slower movement
+    const friction = 0.90;
     const repulsionStrength = 5000;
     const springLength = 150;
     const springStrength = 0.005;
     const centerStrength = 0.001;
-    const mouseRepulsionRadius = 100; // Smaller interaction radius
-    const mouseRepulsionForce = 0.2; // Weaker force
+    const mouseRepulsionRadius = 100;
+    const mouseRepulsionForce = 0.2;
 
     let mouseX = -1000;
     let mouseY = -1000;
@@ -112,14 +121,12 @@ export default function Graph({ posts }: { posts: Post[] }) {
       for (let i = 0; i < nodes.length; i++) {
         const nodeA = nodes[i];
 
-        // If this node is hovered, stop it completely
         if (i === hoveredIdx) {
             nodeA.vx = 0;
             nodeA.vy = 0;
             continue;
         }
 
-        // Repulsion
         for (let j = 0; j < nodes.length; j++) {
           if (i === j) continue;
           const nodeB = nodes[j];
@@ -134,7 +141,6 @@ export default function Graph({ posts }: { posts: Post[] }) {
           }
         }
 
-        // Mouse Repulsion (Only if not hovered)
         const dxM = nodeA.x - mouseX;
         const dyM = nodeA.y - mouseY;
         const distM = Math.sqrt(dxM * dxM + dyM * dyM);
@@ -144,17 +150,14 @@ export default function Graph({ posts }: { posts: Post[] }) {
           nodeA.vy += (dyM / distM) * force;
         }
 
-        // Center Gravity
         nodeA.vx += (width / 2 - nodeA.x) * centerStrength;
         nodeA.vy += (height / 2 - nodeA.y) * centerStrength;
       }
 
-      // Spring Forces
       links.forEach(link => {
         const nodeA = nodes[link.source];
         const nodeB = nodes[link.target];
         
-        // Skip spring forces on hovered node (let it stick)
         if (link.source === hoveredIdx || link.target === hoveredIdx) return;
 
         const dx = nodeB.x - nodeA.x;
@@ -175,38 +178,47 @@ export default function Graph({ posts }: { posts: Post[] }) {
 
       // 2. Update Positions & DOM
       nodes.forEach((node, i) => {
-        // If hovered, don't update physics position, just let it sit
         if (i !== hoveredIdx) {
             node.vx *= friction;
             node.vy *= friction;
             node.x += node.vx;
             node.y += node.vy;
 
-            // Boundary Check (Soft bounce)
             if (node.x < 0) node.vx += 1;
             if (node.x > width) node.vx -= 1;
             if (node.y < 0) node.vy += 1;
             if (node.y > height) node.vy -= 1;
         }
 
-        // Direct DOM update for nodes
         const el = document.getElementById(`node-${i}`);
         if (el) {
           el.style.transform = `translate3d(${node.x - node.radius}px, ${node.y - node.radius}px, 0)`;
         }
       });
 
-      // Direct DOM/SVG update for links
+      // Update Links (SVG Paths with curvature)
       links.forEach((link, i) => {
-        const el = document.getElementById(`link-${i}`);
-        if (el) {
-          const nodeA = nodes[link.source];
-          const nodeB = nodes[link.target];
-          el.setAttribute('x1', String(nodeA.x));
-          el.setAttribute('y1', String(nodeA.y));
-          el.setAttribute('x2', String(nodeB.x));
-          el.setAttribute('y2', String(nodeB.y));
-        }
+        const nodeA = nodes[link.source];
+        const nodeB = nodes[link.target];
+        
+        // Calculate midpoint for curve control point
+        const midX = (nodeA.x + nodeB.x) / 2;
+        const midY = (nodeA.y + nodeB.y) / 2;
+
+        link.tags.forEach((tag, tagIndex) => {
+            const el = document.getElementById(`link-${i}-${tagIndex}`);
+            if (el) {
+                // Offset the control point based on tag index to separate lines
+                const dx = nodeB.x - nodeA.x;
+                const dy = nodeB.y - nodeA.y;
+                const offset = (tagIndex - (link.tags.length - 1) / 2) * 20; 
+                const len = Math.sqrt(dx*dx + dy*dy) || 1;
+                const cpX = midX + (-dy / len) * offset;
+                const cpY = midY + (dx / len) * offset;
+
+                el.setAttribute('d', `M${nodeA.x},${nodeA.y} Q${cpX},${cpY} ${nodeB.x},${nodeB.y}`);
+            }
+        });
       });
 
       requestRef.current = requestAnimationFrame(animate);
@@ -221,18 +233,24 @@ export default function Graph({ posts }: { posts: Post[] }) {
     };
   }, [mounted]);
 
+  const isDark = (theme === 'system' ? resolvedTheme : theme) === 'dark';
+
   if (!mounted) return null;
 
   return (
     <div ref={containerRef} className="fixed inset-0 z-0 overflow-hidden bg-[#fdfbf7] dark:bg-[#0a0a0a] transition-colors duration-500">
       <svg className="absolute inset-0 w-full h-full pointer-events-none">
         {linksRef.current.map((link, i) => (
-          <line
-            key={i}
-            id={`link-${i}`}
-            className="stroke-gray-300 dark:stroke-gray-800 transition-colors duration-500"
-            strokeWidth={1 + link.strength * 0.5}
-          />
+            link.tags.map((tag, tagIndex) => (
+                <path
+                    key={`${i}-${tagIndex}`}
+                    id={`link-${i}-${tagIndex}`}
+                    fill="none"
+                    stroke={stringToColor(tag, isDark)}
+                    strokeWidth={1.5}
+                    strokeOpacity={0.6}
+                />
+            ))
         ))}
       </svg>
 
@@ -243,13 +261,14 @@ export default function Graph({ posts }: { posts: Post[] }) {
             id={`node-${i}`}
             onMouseEnter={() => setHoveredNode(i)}
             onMouseLeave={() => setHoveredNode(null)}
-            className="absolute flex items-center justify-center rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:scale-110 hover:border-black dark:hover:border-white hover:z-50 transition-all duration-300 cursor-pointer group"
+            className="absolute flex items-center justify-center rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:scale-110 hover:border-black dark:hover:border-white hover:z-50 cursor-pointer group"
             style={{ 
                 width: node.radius * 2, 
                 height: node.radius * 2,
-                // Initial position off-screen or center, updated by loop
                 left: 0,
                 top: 0,
+                // Add specific transitions for non-transform props
+                transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s, width 0.3s, height 0.3s'
             }}
         >
             <div className="text-center p-2 overflow-hidden">
@@ -259,7 +278,11 @@ export default function Graph({ posts }: { posts: Post[] }) {
                 {node.frontmatter.tags && (
                   <div className="hidden group-hover:flex flex-wrap justify-center gap-1 mt-1">
                     {node.frontmatter.tags.slice(0, 2).map(t => (
-                      <span key={t} className="text-[10px] text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1 rounded">#{t}</span>
+                      <span key={t} 
+                            style={{ backgroundColor: stringToColor(t, isDark), color: isDark ? '#fff' : '#fff' }}
+                            className="text-[10px] px-1 rounded opacity-80">
+                        #{t}
+                      </span>
                     ))}
                   </div>
                 )}
@@ -267,7 +290,6 @@ export default function Graph({ posts }: { posts: Post[] }) {
         </Link>
       ))}
       
-      {/* Empty State / Hint */}
       {nodesRef.current.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400">
               No thoughts planted yet.
