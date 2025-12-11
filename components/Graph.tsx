@@ -268,10 +268,15 @@ export default function Graph({ posts }: { posts: Post[] }) {
         ))}
       </svg>
 
-      {nodesRef.current.map((node, i) => (
+      {nodesRef.current.map((node, i) => {
+        const isHovered = hoveredNode === i;
+        const isFocusMode = hoveredNode !== null;
+        const isDimmed = isFocusMode && !isHovered;
+
+        return (
         <div
             key={node.slug}
-            ref={el => { nodeElementsRef.current[i] = el; }} // Capture ref
+            ref={el => { nodeElementsRef.current[i] = el; }} 
             onMouseEnter={() => setHoveredNode(i)}
             onMouseLeave={() => setHoveredNode(null)}
             className="absolute rounded-full shadow-sm hover:shadow-xl hover:z-50 cursor-pointer group will-change-transform"
@@ -285,17 +290,21 @@ export default function Graph({ posts }: { posts: Post[] }) {
         >
           <Link 
             href={`/posts/${node.slug}`}
-            className="flex items-center justify-center w-full h-full rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-black dark:hover:border-white transition-colors duration-300"
+            className={`flex items-center justify-center w-full h-full rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-black dark:hover:border-white transition-all duration-300 ease-out ${
+                isHovered ? 'scale-150 z-50' : ''
+            } ${
+                isDimmed ? 'scale-50 opacity-40 grayscale' : 'scale-100'
+            }`}
           >
-              <div className="text-center p-2 overflow-hidden">
-                  <span className="font-sans font-bold text-xs md:text-sm text-gray-900 dark:text-gray-100 line-clamp-3 group-hover:line-clamp-none transition-all">
+              <div className={`text-center p-2 overflow-hidden transition-opacity duration-300 ${isDimmed ? 'opacity-0' : 'opacity-100'}`}>
+                  <span className="font-sans font-bold text-xs md:text-sm text-gray-900 dark:text-gray-100 line-clamp-3 group-hover:line-clamp-none">
                       {node.frontmatter.title}
                   </span>
                   {node.frontmatter.tags && (
                     <div className="hidden group-hover:flex flex-wrap justify-center gap-1 mt-1">
                       {node.frontmatter.tags.slice(0, 2).map(t => (
                         <span key={t} 
-                              style={{ backgroundColor: stringToColor(t, isDark), color: isDark ? '#fff' : '#fff' }}
+                              style={{ backgroundColor: stringToColor(t, isDark), color: '#fff' }}
                               className="text-[10px] px-1 rounded opacity-80">
                           #{t}
                         </span>
@@ -305,7 +314,8 @@ export default function Graph({ posts }: { posts: Post[] }) {
               </div>
           </Link>
         </div>
-      ))}
+      );
+      })}
       
       {/* Empty State */}
       {nodesRef.current.length === 0 && (
