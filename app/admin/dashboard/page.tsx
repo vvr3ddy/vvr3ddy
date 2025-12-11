@@ -1,12 +1,29 @@
-'use client'; // Make this a Client Component
+'use client';
 
-import React from 'react';
-import { useAuthStatus } from '@/hooks/useAuthStatus'; // Import useAuthStatus
-import Link from 'next/link'; // Import Link
+import React, { useEffect } from 'react'; // Import useEffect
+import { useAuthStatus } from '@/hooks/useAuthStatus';
+import Link from 'next/link';
 
 const AdminDashboardPage = () => {
-  const { logout } = useAuthStatus(); // Use the logout function from the hook
+  const { isAuthenticated, isLoading, redirectToLogin, logout } = useAuthStatus();
 
+  // Redirect if not authenticated after loading
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      redirectToLogin();
+    }
+  }, [isAuthenticated, isLoading, redirectToLogin]);
+
+  if (isLoading || !isAuthenticated) {
+    // Show a loading indicator or null while checking auth or if not authenticated (before redirect)
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#fdfbf7] dark:bg-[#0a0a0a] text-gray-400 font-sans text-sm animate-pulse transition-colors duration-500">
+        Loading Admin Dashboard...
+      </div>
+    );
+  }
+
+  // Render dashboard content only if authenticated
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#fdfbf7] dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 transition-colors duration-500">
       <h1 className="font-sans text-3xl font-bold mb-4">Admin Dashboard</h1>
