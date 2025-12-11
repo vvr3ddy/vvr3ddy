@@ -83,11 +83,12 @@ export default function AdminLoginPage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
             <input
               type="password"
-              className={`mt-1 block w-full rounded-md border shadow-sm focus:outline-none focus:ring-2 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 
+              className={`mt-1 block w-full rounded-md border shadow-sm focus:outline-none focus:ring-2 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all
                 ${loginError ? 'border-red-500 ring-red-500 animate-wiggle' : 'border-gray-300 dark:border-gray-700 focus:border-indigo-500 focus:ring-indigo-500'}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoFocus
             />
           </div>
           <div>

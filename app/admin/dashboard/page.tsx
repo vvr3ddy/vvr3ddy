@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useAuthStatus } from '@/hooks/useAuthStatus'; // Import useAuthStatus
+import Link from 'next/link'; // Import Link
 
 const AdminDashboardPage = () => {
   const { logout } = useAuthStatus(); // Use the logout function from the hook
@@ -25,7 +26,14 @@ const AdminDashboardPage = () => {
         </p>
       </div>
 
-      <button onClick={logout} className="mt-8 text-blue-600 hover:underline dark:text-blue-400">Logout</button>
+      <div className="flex gap-4 mt-8">
+        <Link href="/" className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+          Go to Home
+        </Link>
+        <button onClick={logout} className="px-4 py-2 rounded-md border border-red-300 text-red-600 dark:border-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 transition-colors">
+          Logout
+        </button>
+      </div>
     </div>
   );
 };
