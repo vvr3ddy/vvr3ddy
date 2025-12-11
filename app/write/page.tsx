@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, Suspense, useRef } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import ReactMarkdown from 'react-markdown';
