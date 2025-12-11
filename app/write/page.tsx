@@ -7,6 +7,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { useSearchParams } from 'next/navigation';
+import { Lock } from 'lucide-react';
 
 function Editor() {
   const searchParams = useSearchParams();
@@ -20,23 +21,37 @@ function Editor() {
   const [date, setDate] = useState('');
   const [password, setPassword] = useState('');
   const [isPending, setIsPending] = useState(false);
-  const [isLoading, setIsLoading] = useState(!!editSlug);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
   const [message, setMessage] = useState('');
 
+  // Check auth on load
   useEffect(() => {
-    // Attempt to load password from localStorage on mount
-    const savedPassword = localStorage.getItem('admin_password');
-    if (savedPassword) setPassword(savedPassword);
+    const checkAuth = async () => {
+      const savedPassword = localStorage.getItem('admin_password');
+      if (savedPassword) {
+        try {
+          const res = await fetch('/api/verify', {
+            method: 'POST',
+            headers: { 'x-admin-password': savedPassword }
+          });
+          if (res.ok) {
+            setPassword(savedPassword);
+            setIsAuthorized(true);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      setAuthChecking(false);
+    };
+    checkAuth();
   }, []);
 
+  // Fetch post data once authorized (and if editing)
   useEffect(() => {
-    if (password) {
-      localStorage.setItem('admin_password', password);
-    }
-  }, [password]);
-
-  useEffect(() => {
-    if (editSlug && password) { // Only fetch if we have a password (or let it fail and show auth error? Better to wait/retry)
+    if (editSlug && isAuthorized) {
       setIsLoading(true);
       fetch('/api/post', {
         method: 'POST',
@@ -64,11 +79,32 @@ function Editor() {
         })
         .catch(err => {
           console.error(err);
-          setMessage(err.message === 'Unauthorized' ? 'Invalid Password' : 'Error loading post.');
+          setMessage('Error loading post.');
         })
         .finally(() => setIsLoading(false));
     }
-  }, [editSlug, password]); // Retry when password changes
+  }, [editSlug, isAuthorized, password]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthChecking(true);
+    try {
+      const res = await fetch('/api/verify', {
+        method: 'POST',
+        headers: { 'x-admin-password': password }
+      });
+      if (res.ok) {
+        localStorage.setItem('admin_password', password);
+        setIsAuthorized(true);
+      } else {
+        setMessage('Incorrect password');
+      }
+    } catch (error) {
+      setMessage('Login failed');
+    } finally {
+      setAuthChecking(false);
+    }
+  };
 
   const handleSave = async () => {
     setIsPending(true);
@@ -92,8 +128,8 @@ function Editor() {
       });
 
       if (response.status === 401) {
-        setMessage('Unauthorized: Check password');
-        setIsPending(false);
+        setMessage('Unauthorized: Session expired');
+        setIsAuthorized(false);
         return;
       }
 
@@ -107,10 +143,40 @@ function Editor() {
     }
   };
 
-  if (isLoading && !password) {
-     // If loading but no password yet (and using effect), just show editor? 
-     // actually with the effect dependency, it won't fetch until password is set. 
-     // So we just show the normal UI and the user types the password.
+  if (authChecking) {
+    return <div className="flex h-screen items-center justify-center text-gray-400 font-sans text-sm animate-pulse">Verifying...</div>;
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#fdfbf7]">
+        <form onSubmit={handleLogin} className="flex flex-col items-center gap-4 w-full max-w-xs px-6">
+          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+            <Lock className="w-4 h-4 text-gray-400" />
+          </div>
+          <h1 className="font-sans font-bold text-gray-900 mb-2">Restricted Access</h1>
+          <input
+            type="password"
+            placeholder="Enter admin password"
+            className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-center font-sans text-sm outline-none focus:border-black transition-colors"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoFocus
+          />
+          <button
+            type="submit"
+            className="w-full bg-black text-white rounded px-4 py-2 font-sans text-sm font-medium hover:bg-gray-800 transition-colors"
+          >
+            Unlock Studio
+          </button>
+          {message && <p className="text-red-500 text-xs font-sans mt-2">{message}</p>}
+        </form>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center text-gray-500 font-sans">Loading post content...</div>;
   }
 
   return (
@@ -120,13 +186,6 @@ function Editor() {
         <header className="p-4 border-b border-gray-200 flex justify-between items-center bg-white/50 backdrop-blur">
           <h1 className="font-sans font-bold text-sm text-gray-500 uppercase tracking-widest">Studio {editSlug ? '(Editing)' : ''}</h1>
           <div className="flex items-center gap-2">
-            <input 
-              type="password" 
-              placeholder="Admin Password"
-              className="bg-gray-100 px-2 py-1 rounded text-xs border border-gray-200 focus:outline-none focus:border-black transition-colors"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
             <button
               onClick={handleSave}
               disabled={isPending}
